@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "aHGCseDJT4w=",
+  "success": true,
+  "projectFilePath": "C:\\MData\\github\\net-api\\LearnMicrosoftHttpClient\\HttpClientMethods\\HttpClientMethods.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\massi\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.7\\microsoft.aspnetcore.openapi.10.0.7.nupkg.sha512",
+    "C:\\Users\\massi\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
