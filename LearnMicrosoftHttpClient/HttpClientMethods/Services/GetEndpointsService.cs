@@ -53,7 +53,7 @@ namespace HttpClientMethods.Services
                     .ToList() ?? [];
         }
 
-        public async IAsyncEnumerable<(string commitMessage, DateTime commitDate, int total)> GetRepositoryCommits(string orgName, string repositoryName, int page, int perPage, [EnumeratorCancellation]  CancellationToken cancellationToken)
+        public async Task<(List<(string commitMessage, DateTime commitDate)> commits, int total)> GetRepositoryCommits(string orgName, string repositoryName, int page, int perPage, int totalPages, CancellationToken cancellationToken)
         {
             HttpClient client = clientFactory.CreateClient();
 
@@ -61,14 +61,13 @@ namespace HttpClientMethods.Services
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
 
-            int counter = 0;
-            int pageCounter = 0;
+            (List<(string commitMessage, DateTime commitDate)> commits, int total) result = (new List<(string commitMessage, DateTime commitDate)>(), 0);
 
-            while (pageCounter < 10)
+            while (page <= totalPages)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                string relativeUri = $"repos/{orgName}/{repositoryName}/commits?page={page + pageCounter}&per_page={perPage}";
+                string relativeUri = $"repos/{orgName}/{repositoryName}/commits?page={page}&per_page={perPage}";
 
                 using HttpResponseMessage response = await client.GetAsync(relativeUri, cancellationToken);
 
@@ -87,12 +86,16 @@ namespace HttpClientMethods.Services
                 {
                     string commitMessage = commit.GetProperty("commit").GetProperty("message").GetString() ?? string.Empty;
                     DateTime commitDate = commit.GetProperty("commit").GetProperty("committer").GetProperty("date").GetDateTime();
-    
-                    yield return (commitMessage, commitDate, ++counter);
+
+                    result.commits.Add((commitMessage, commitDate));
                 }
 
-                pageCounter++;
+                result.total += commits.Count();
+
+                page++;
             }
+
+            return result;
         }
     }
 }

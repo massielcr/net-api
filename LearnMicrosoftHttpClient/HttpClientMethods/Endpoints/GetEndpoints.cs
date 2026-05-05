@@ -1,5 +1,7 @@
 ﻿using HttpClientMethods.Services;
-using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using System.Text.RegularExpressions;
 
 namespace HttpClientMethods.Methods
 {
@@ -24,13 +26,20 @@ namespace HttpClientMethods.Methods
 
             }).WithName("GetRepositories");
 
-            app.Map("/repos/commits", async (string id, CancellationManager manager, IGetEndpointsService getEndpointsService, CancellationToken cancellationToken) =>
+            app.Map("/orgs/{orgname}/repos/{reponame}/commits", async ([FromRoute] string orgname, [FromRoute] string reponame, [FromQuery(Name = "cid")] string connectionId,
+                                                                       [FromServices] IGetEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager) =>
             {
-                var token = manager.GetToken(id);
+                var token = cancellationManager.GetToken(connectionId);
 
-                IAsyncEnumerable<(string commitMessage, DateTime commitDate, int total)> commits = getEndpointsService.GetRepositoryCommits("dotnet", "runtime", 1, 10, cancellationToken);
+                (List<(string commitMessage, DateTime commitDate)> commits, int total) result = await getEndpointsService.GetRepositoryCommits(orgname, reponame, 1, 10, 1, token);
 
-                return Results.Ok(1);
+                return Results.Ok(new { Commits = result.commits.Select(c => 
+                                        {
+                                            var decoded = WebUtility.HtmlDecode(c.commitMessage);
+                                            var clean = Regex.Replace(decoded.Replace("\n", " "), @"[^a-zA-Z0-9\s]", "").Trim();
+                                            return $"{c.commitDate} -- {clean}";
+                                        }), 
+                                        Total = result.total });
 
             }).WithName("GetCommits");
 

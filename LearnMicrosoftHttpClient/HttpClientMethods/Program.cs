@@ -12,6 +12,8 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.AddHttpClient();
 
+builder.Services.AddSingleton<CancellationManager>();
+
 builder.Services.AddScoped<IGetEndpointsService, GetEndpointsService>();
 
 

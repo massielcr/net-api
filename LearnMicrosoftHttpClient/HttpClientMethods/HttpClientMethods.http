@@ -6,7 +6,7 @@ Accept: application/json
 
 ###
 
-GET {{HttpClientMethods_HostAddress}}/repos
+GET {{HttpClientMethods_HostAddress}}/orgs/dotnet/repos/efcore/commits?cid=1
 Accept: application/json
 
 ###
