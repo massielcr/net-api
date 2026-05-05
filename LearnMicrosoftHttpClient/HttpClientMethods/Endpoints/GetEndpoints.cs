@@ -35,9 +35,9 @@ namespace HttpClientMethods.Methods
 
                 return Results.Ok(new { Commits = result.commits.Select(c => 
                                         {
-                                            var decoded = WebUtility.HtmlDecode(c.commitMessage);
-                                            var clean = Regex.Replace(decoded.Replace("\n", " "), @"[^a-zA-Z0-9\s]", "").Trim();
-                                            return $"{c.commitDate} -- {clean}";
+                                            var decodedMessage = WebUtility.HtmlDecode(c.commitMessage);
+                                            var cleanMessage = Regex.Replace(decodedMessage.Replace("\n", " "), @"[^a-zA-Z0-9\s]", "").Trim();
+                                            return $"{c.commitDate} -- {cleanMessage}";
                                         }), 
                                         Total = result.total });
 
