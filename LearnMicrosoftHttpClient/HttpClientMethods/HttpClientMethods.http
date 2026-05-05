@@ -1,12 +1,12 @@
 @HttpClientMethods_HostAddress = http://localhost:5099
 
 
-GET {{HttpClientMethods_HostAddress}}/repos?username=massielcr
+GET {{HttpClientMethods_HostAddress}}/repos/count
 Accept: application/json
 
 ###
 
-GET {{HttpClientMethods_HostAddress}}/todos/1
+GET {{HttpClientMethods_HostAddress}}/repos
 Accept: application/json
 
 ###

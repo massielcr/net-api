@@ -4,20 +4,24 @@ namespace HttpClientMethods.Methods
 {
     public static class GetEndpoints
     {
-        public static void MapSendEndpoints(this WebApplication app)
+        public static void MapGetEndpoints(this WebApplication app)
         {
-            app.Map("/repos", async (string? username, IGetEndpointsService sendEndpointsService) =>
+            app.Map("/repos/count", async (IGetEndpointsService getEndpointsService) =>
             {
-                if (string.IsNullOrWhiteSpace(username))
-                {
-                    return Results.BadRequest("Username query parameter is required.");
-                }
+                int reposCount = await getEndpointsService.GetRepositoriesCountAsync();
 
-                var repos = await sendEndpointsService.GetRepositoriesStringAsync(username);
+                return Results.Ok(reposCount);
+
+            }).WithName("GetRepositoriesCount");
+
+
+            app.Map("/repos", async (IGetEndpointsService getEndpointsService) =>
+            {
+                IEnumerable<string> repos = await getEndpointsService.GetAllRepositoriesAsync();
 
                 return Results.Ok(repos);
 
-            }).WithName("GetAsync()");
+            }).WithName("GetRepositories");
         }
     }
 }

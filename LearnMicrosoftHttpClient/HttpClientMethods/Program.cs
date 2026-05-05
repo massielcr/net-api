@@ -10,11 +10,10 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
 
-builder.Services.AddHttpClient<IGetEndpointsService, GetEndpointsService>(client =>
-{
-    client.BaseAddress = new Uri("https://api.github.com/");
-    client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
-});
+builder.Services.AddHttpClient();
+
+builder.Services.AddScoped<IGetEndpointsService, GetEndpointsService>();
+
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -27,7 +26,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.MapSendEndpoints();
+app.MapGetEndpoints();
 
 
 
