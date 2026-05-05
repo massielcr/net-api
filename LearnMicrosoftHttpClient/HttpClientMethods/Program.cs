@@ -1,23 +1,42 @@
-var builder = WebApplication.CreateBuilder(args);
+using HttpClientMethods.Methods;
+using HttpClientMethods.Services;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
-// Add services to the container.
+var builder = WebApplication.CreateSlimBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
+});
+
+builder.Services.AddHttpClient<IGetEndpointsService, GetEndpointsService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.github.com/");
+    client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
+});
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+app.MapSendEndpoints();
 
-app.UseAuthorization();
 
-app.MapControllers();
 
 app.Run();
+
+
+[JsonSerializable(typeof(string))]
+[JsonSerializable(typeof(IEnumerable<JsonElement>))]
+internal partial class AppJsonSerializerContext : JsonSerializerContext
+{
+
+}

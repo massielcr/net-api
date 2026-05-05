@@ -1,6 +1,12 @@
-@HttpClientMethods_HostAddress = http://localhost:5083
+@HttpClientMethods_HostAddress = http://localhost:5099
 
-GET {{HttpClientMethods_HostAddress}}/weatherforecast/
+
+GET {{HttpClientMethods_HostAddress}}/repos?username=massielcr
+Accept: application/json
+
+###
+
+GET {{HttpClientMethods_HostAddress}}/todos/1
 Accept: application/json
 
 ###
