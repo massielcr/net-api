@@ -9,16 +9,23 @@ namespace HttpClientMethods.Methods
     {
         public static void MapGetEndpoints(this WebApplication app)
         {
-            app.Map("/repos/count", async (IGetEndpointsService getEndpointsService) =>
+            app.MapGet("/repos/count", async (IGetEndpointsService getEndpointsService) =>
             {
                 int reposCount = await getEndpointsService.GetRepositoriesCountAsync();
 
-                return Results.Ok(reposCount);
+                if (reposCount >= 0)
+                {
+                    return Results.Ok(reposCount);
+                }
+                else
+                {
+                    return Results.Problem("An error ocurred");
+                }               
 
             }).WithName("GetRepositoriesCount");
 
 
-            app.Map("/repos", async (IGetEndpointsService getEndpointsService) =>
+            app.MapGet("/repos", async (IGetEndpointsService getEndpointsService) =>
             {
                 IEnumerable<string> repos = await getEndpointsService.GetAllRepositoriesAsync();
 
@@ -26,12 +33,13 @@ namespace HttpClientMethods.Methods
 
             }).WithName("GetRepositories");
 
-            app.Map("/orgs/{orgname}/repos/{reponame}/commits", async ([FromRoute] string orgname, [FromRoute] string reponame, [FromQuery(Name = "cid")] string connectionId,
+
+            app.MapGet("/orgs/{orgname}/repos/{reponame}/commits", async ([FromRoute] string orgname, [FromRoute] string reponame, [FromQuery(Name = "cid")] string connectionId,
                                                                        [FromServices] IGetEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager) =>
             {
                 var token = cancellationManager.GetToken(connectionId);
 
-                (List<(string commitMessage, DateTime commitDate)> commits, int total) result = await getEndpointsService.GetRepositoryCommits(orgname, reponame, 1, 10, 1, token);
+                (List<(string commitMessage, DateTime commitDate)> commits, int total) result = await getEndpointsService.GetRepositoryCommits(orgname, reponame, 1, 10, 100, token);
 
                 return Results.Ok(new { Commits = result.commits.Select(c => 
                                         {
@@ -42,6 +50,7 @@ namespace HttpClientMethods.Methods
                                         Total = result.total });
 
             }).WithName("GetCommits");
+
 
             app.MapPost("/cancel-work/{id}", (string id, CancellationManager manager) => {
                 manager.Cancel(id);

@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace HttpClientMethods.Services
 {
@@ -10,23 +8,50 @@ namespace HttpClientMethods.Services
 
         public async Task<int> GetRepositoriesCountAsync()
         {
+            int result = -1;
+
             HttpClient client = clientFactory.CreateClient();
 
             client.BaseAddress = new Uri(BaseUrl);
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
 
-            string relativeUri = $"orgs/dotnet/repos";            
+            string relativeUri = $"orgs/dotnet/repos";
 
-            using HttpResponseMessage response = await client.GetAsync(relativeUri);
+            try
+            {
+                using HttpResponseMessage response = await client.GetAsync(relativeUri);
 
-            response.EnsureSuccessStatusCode();
+                response.EnsureSuccessStatusCode();
 
-            using Stream stream = await response.Content.ReadAsStreamAsync();
+                using Stream stream = await response.Content.ReadAsStreamAsync();
 
-            IEnumerable<JsonElement>? repositories = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(stream);
+                IEnumerable<JsonElement>? repositories = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(stream);
 
-            return repositories?.Count() ?? 0;
+                return repositories?.Count() ?? result;
+
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"The requestUri is not an absolute URI and BaseAddress isn't set.{ex.Message}");
+                return result;
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response: {ex.Message}");
+                Console.WriteLine($".NET Framework only: the request timed out. {ex.Message}");
+                return result;
+            }
+            catch (OperationCanceledException ex)
+            {
+                Console.WriteLine($".NET Core and .NET 5 and later only: The request failed due to timeout. {ex.Message}");
+                return result;
+            }
+            catch (UriFormatException ex)
+            {
+                Console.WriteLine($"The provided request URI is not valid relative or absolute URI: {ex.Message}");
+                return result;
+            }
         }
 
         public async Task<IEnumerable<string>> GetAllRepositoriesAsync()
