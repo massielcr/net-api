@@ -5,6 +5,22 @@
 GET {{HttpClientMethods_HostAddress}}/repos/count
 Accept: application/json
 
+### GetAsync(String, HttpCompletionOption)
+
+
+
+### GetAsync(String, CancellationToken)
+
+GET {{HttpClientMethods_HostAddress}}/orgs/dotnet/repos/efcore/commits?page=1&perPage=10&totalPages=1&cid=1
+Accept: application/json
+
+
+### GetAsync(String, HttpCompletionOption, CancellationToken)
+
+
+
+
+
 
 ### GetAsync(Uri)
 
@@ -12,7 +28,12 @@ GET {{HttpClientMethods_HostAddress}}/repos
 Accept: application/json
 
 
-### GetAsync(String, CancellationToken)
+### GetAsync(Uri, HttpCompletionOption)
 
-GET {{HttpClientMethods_HostAddress}}/orgs/dotnet/repos/efcore/commits?page=1&perPage=10&totalPages=1&cid=1
+
+### GetAsync(Uri, CancellationToken)
+
+
+### GetAsync(Uri, HttpCompletionOption, CancellationToken)
+GET {{HttpClientMethods_HostAddress}}/orgs/dotnet/repos/efcore/commitstream?page=1&perPage=10&totalPages=1&cid=1
 Accept: application/json

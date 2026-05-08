@@ -46,9 +46,7 @@ namespace HttpClientMethods.Methods
                                                                           [FromQuery(Name = "cid")] string connectionId,
                                                                           [FromServices] IGetEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager) =>
             {
-                var token = cancellationManager.GetToken(connectionId);
-
-                cancellationManager.Cancel(connectionId, 30);
+                var token = cancellationManager.GetToken(connectionId, 30);
 
                 try
                 {
@@ -79,6 +77,30 @@ namespace HttpClientMethods.Methods
                     return Results.StatusCode(499);
                 }              
             }).WithName("GetCommits");
+
+
+            app.MapGet("/orgs/{orgname}/repos/{reponame}/commitstream", async ([FromRoute] string orgname, [FromRoute] string reponame,
+                                                                          [FromQuery(Name = "page")] int page, [FromQuery(Name = "perPage")] int perPage, [FromQuery(Name = "totalPages")] int totalPages,
+                                                                          [FromQuery(Name = "cid")] string connectionId,
+                                                                          [FromServices] IGetEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager) =>
+            {
+                CancellationToken token = cancellationManager.GetToken(connectionId, 30);
+
+                try
+                {
+                    IAsyncEnumerable<(string commitMessage, DateTime commitDate)> commitStream = getEndpointsService.GetRepositoryCommitsStreamAsync(orgname, reponame, page, perPage, totalPages, token);
+
+                    return Results.Ok(commitStream.Select(c => new
+                    {
+                        Commit = $"{c.commitDate} - {c.commitMessage}"
+                    }));
+                }
+                catch (OperationCanceledException)
+                {
+                    // Return a specific status indicating the request was stopped
+                    return Results.StatusCode(499);
+                }
+            });
 
 
             app.MapPost("/cancel-work", ([FromQuery(Name ="cid")] string connectionId, [FromServices] CancellationManager cancellationManager) => {
