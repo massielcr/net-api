@@ -41,27 +41,51 @@ namespace HttpClientMethods.Methods
             }).WithName("GetRepositories");
 
 
-            app.MapGet("/orgs/{orgname}/repos/{reponame}/commits", async ([FromRoute] string orgname, [FromRoute] string reponame, [FromQuery(Name = "cid")] string connectionId,
-                                                                       [FromServices] IGetEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager) =>
+            app.MapGet("/orgs/{orgname}/repos/{reponame}/commits", async ([FromRoute] string orgname, [FromRoute] string reponame,
+                                                                          [FromQuery(Name = "page")] int page, [FromQuery(Name = "perPage")] int perPage, [FromQuery(Name = "totalPages")] int totalPages,
+                                                                          [FromQuery(Name = "cid")] string connectionId,
+                                                                          [FromServices] IGetEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager) =>
             {
                 var token = cancellationManager.GetToken(connectionId);
 
-                (List<(string commitMessage, DateTime commitDate)> commits, int total) result = await getEndpointsService.GetRepositoryCommits(orgname, reponame, 1, 10, 100, token);
+                cancellationManager.Cancel(connectionId, 30);
 
-                return Results.Ok(new { Commits = result.commits.Select(c => 
-                                        {
-                                            var decodedMessage = WebUtility.HtmlDecode(c.commitMessage);
-                                            var cleanMessage = Regex.Replace(decodedMessage.Replace("\n", " "), @"[^a-zA-Z0-9\s]", "").Trim();
-                                            return $"{c.commitDate} -- {cleanMessage}";
-                                        }), 
-                                        Total = result.total });
+                try
+                {
+                    (List<(string commitMessage, DateTime commitDate)> commits, int total) result = await getEndpointsService.GetRepositoryCommits(orgname, reponame, page, perPage, totalPages, token);
 
+
+                    if (result.commits != null && result.commits.Any())
+                    {
+                        return Results.Ok(new
+                        {
+                            Commits = result.commits.Select(c =>
+                            {
+                                var decodedMessage = WebUtility.HtmlDecode(c.commitMessage);
+                                var cleanMessage = Regex.Replace(decodedMessage.Replace("\n", " "), @"[^a-zA-Z0-9\s]", "").Trim();
+                                return $"{c.commitDate} -- {cleanMessage}";
+                            }),
+                            Total = result.total
+                        });
+                    }
+                    else
+                    {
+                        return Results.Problem("No commits");
+                    }                    
+                }
+                catch (OperationCanceledException)
+                {
+                    // Return a specific status indicating the request was stopped
+                    return Results.StatusCode(499);
+                }              
             }).WithName("GetCommits");
 
 
-            app.MapPost("/cancel-work/{id}", (string id, CancellationManager manager) => {
-                manager.Cancel(id);
-                return Results.Ok($"Work for {id} requested to stop.");
+            app.MapPost("/cancel-work", ([FromQuery(Name ="cid")] string connectionId, [FromServices] CancellationManager cancellationManager) => {
+
+                cancellationManager.Cancel(connectionId);
+
+                return Results.Ok($"Work for {connectionId} requested to stop.");
             });
         }
     }

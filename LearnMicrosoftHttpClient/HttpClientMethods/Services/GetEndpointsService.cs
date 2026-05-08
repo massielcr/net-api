@@ -1,10 +1,12 @@
-﻿using System.Text.Json;
+﻿using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace HttpClientMethods.Services
 {
     public class GetEndpointsService(IHttpClientFactory clientFactory) : IGetEndpointsService
     {
         private const string BaseUrl = "https://api.github.com/";
+        private readonly string? _githubToken = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
 
         public async Task<int> GetRepositoriesCountAsync()
         {
@@ -15,6 +17,8 @@ namespace HttpClientMethods.Services
             client.BaseAddress = new Uri(BaseUrl);
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
+
 
             string relativeUri = $"orgs/dotnet/repos";
 
@@ -60,6 +64,7 @@ namespace HttpClientMethods.Services
 
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
 
             Uri uri = new($"{BaseUrl}orgs/dotnet/repos");
 
@@ -109,43 +114,69 @@ namespace HttpClientMethods.Services
 
             client.BaseAddress = new Uri(BaseUrl);
             client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
+            client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");    
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
 
             (List<(string commitMessage, DateTime commitDate)> commits, int total) result = (new List<(string commitMessage, DateTime commitDate)>(), 0);
 
-            while (page <= totalPages)
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                string relativeUri = $"repos/{orgName}/{repositoryName}/commits?page={page}&per_page={perPage}";
-
-                using HttpResponseMessage response = await client.GetAsync(relativeUri, cancellationToken);
-
-                response.EnsureSuccessStatusCode();
-
-                using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-
-                IEnumerable<JsonElement>? commits = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(stream, cancellationToken: cancellationToken);
-
-                if (commits == null || !commits.Any())
+                while (page <= totalPages)
                 {
-                    break;
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    string relativeUri = $"repos/{orgName}/{repositoryName}/commits?page={page}&per_page={perPage}";
+
+                    using HttpResponseMessage response = await client.GetAsync(relativeUri, cancellationToken);
+
+                    response.EnsureSuccessStatusCode();
+
+                    using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+                    IEnumerable<JsonElement>? commits = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(stream, cancellationToken: cancellationToken);
+
+                    if (commits == null || !commits.Any())
+                    {
+                        break;
+                    }
+
+                    foreach (JsonElement commit in commits)
+                    {
+                        string commitMessage = commit.GetProperty("commit").GetProperty("message").GetString() ?? string.Empty;
+                        DateTime commitDate = commit.GetProperty("commit").GetProperty("committer").GetProperty("date").GetDateTime();
+
+                        result.commits.Add((commitMessage, commitDate));
+                    }
+
+                    result.total += commits.Count();
+
+                    page++;
                 }
 
-                foreach (JsonElement commit in commits)
-                {
-                    string commitMessage = commit.GetProperty("commit").GetProperty("message").GetString() ?? string.Empty;
-                    DateTime commitDate = commit.GetProperty("commit").GetProperty("committer").GetProperty("date").GetDateTime();
-
-                    result.commits.Add((commitMessage, commitDate));
-                }
-
-                result.total += commits.Count();
-
-                page++;
+                return result;
             }
-
-            return result;
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine("The requestUri is not an absolute URI and BaseAddress isn't set.");
+                return result;
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response. ");
+                Console.WriteLine(".NET Framework only: the request timed out.");
+                return result;
+            }
+            catch (UriFormatException ex)
+            {
+                Console.WriteLine("The provided request URI is not valid relative or absolute URI.");
+                return result;
+            }
+            catch (OperationCanceledException ex)
+            {
+                Console.WriteLine("The cancellation token was canceled. This exception is stored into the returned task.");
+                Console.WriteLine(".NET Core and .NET 5 and later only: The request failed due to timeout.");
+                throw;
+            }
         }
     }
 }
