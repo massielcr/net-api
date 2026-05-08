@@ -1,15 +1,16 @@
 {
-  "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
     "http": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "repos",
-      "applicationUrl": "http://localhost:5099",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "GITHUB_TOKEN": "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"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5099"
     }
-  }
+  },
+  "$schema": "https://json.schemastore.org/launchsettings.json"
 }

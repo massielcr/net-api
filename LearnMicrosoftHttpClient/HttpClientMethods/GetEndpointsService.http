@@ -1,0 +1,18 @@
+@HttpClientMethods_HostAddress = http://localhost:5099
+
+### GetAsync(String)
+
+GET {{HttpClientMethods_HostAddress}}/repos/count
+Accept: application/json
+
+
+### GetAsync(Uri)
+
+GET {{HttpClientMethods_HostAddress}}/repos
+Accept: application/json
+
+
+### GetAsync(String, CancellationToken)
+
+GET {{HttpClientMethods_HostAddress}}/orgs/dotnet/repos/efcore/commits?page=1&perPage=10&totalPages=1&cid=1
+Accept: application/json

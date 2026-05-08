@@ -21,5 +21,13 @@ namespace HttpClientMethods.Methods
                 cts.Dispose();
             }
         }
+
+        public void Cancel(string key, int seconds)
+        {
+            if (_sources.TryGetValue(key, out var cts))
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(seconds));
+            }
+        }
     }
 }
