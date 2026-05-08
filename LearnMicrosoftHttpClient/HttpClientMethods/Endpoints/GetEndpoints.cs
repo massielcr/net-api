@@ -29,7 +29,14 @@ namespace HttpClientMethods.Methods
             {
                 IEnumerable<string> repos = await getEndpointsService.GetAllRepositoriesAsync();
 
-                return Results.Ok(repos);
+                if (repos.Any())
+                {
+                    return Results.Ok(repos);
+                }
+                else
+                {
+                    return Results.Problem("No repos");
+                }               
 
             }).WithName("GetRepositories");
 
