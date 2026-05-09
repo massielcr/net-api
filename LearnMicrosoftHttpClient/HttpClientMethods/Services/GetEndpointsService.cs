@@ -113,8 +113,6 @@ namespace HttpClientMethods.Services
 
                     shouldContinue = counter < totalPages && !string.IsNullOrEmpty(relativeUri);
                 }
-
-                return result.OrderBy(name => name).Select((name, index) => $"{index + 1} -  {name}").ToList();
             }
             catch (InvalidOperationException ex)
             {
@@ -135,7 +133,7 @@ namespace HttpClientMethods.Services
                 
             }
 
-            return result;
+            return result.Any() ? result.OrderBy(name => name).Select((name, index) => $"{index + 1} -  {name}").ToList() : [];
         }
 
 
@@ -216,12 +214,13 @@ namespace HttpClientMethods.Services
         {
             HttpClient client = clientFactory.CreateClient();
 
-            client.BaseAddress = new Uri(BaseUrl);
             client.DefaultRequestHeaders.Clear();
+
             client.DefaultRequestHeaders.UserAgent.ParseAdd("MyTestService");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
 
-            List<(string commitMessage, DateTime commitDate)> result = new List<(string commitMessage, DateTime commitDate)>();
+            List<(string commitMessage, DateTime commitDate)> result = [];
 
             try
             {
@@ -229,9 +228,9 @@ namespace HttpClientMethods.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    string relativeUri = $"repos/{orgName}/{repositoryName}/commits?page={page}&per_page={perPage}";
+                    Uri uri = new($"{BaseUrl}repos/{orgName}/{repositoryName}/commits?page={page}&per_page={perPage}");
 
-                    using HttpResponseMessage response = await client.GetAsync(relativeUri, cancellationToken);
+                    using HttpResponseMessage response = await client.GetAsync(uri, cancellationToken);
 
                     response.EnsureSuccessStatusCode();
 
@@ -258,24 +257,19 @@ namespace HttpClientMethods.Services
 
                     page++;
                 }
-
-                return result;
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine("The requestUri is not an absolute URI and BaseAddress isn't set.");
-                return result;
             }
             catch (UriFormatException ex)
             {
                 Console.WriteLine("The provided request URI is not valid relative or absolute URI.");
-                return result;
             }
             catch (HttpRequestException ex)
             {
                 Console.WriteLine("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response. ");
-                Console.WriteLine(".NET Framework only: the request timed out.");
-                return result;
+                Console.WriteLine(".NET Framework only: the request timed out.");                
             }
             catch (OperationCanceledException ex)
             {
@@ -283,6 +277,8 @@ namespace HttpClientMethods.Services
                 Console.WriteLine(".NET Core and .NET 5 and later only: The request failed due to timeout.");
                 throw;
             }
+
+            return result;
         }
 
         

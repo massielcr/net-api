@@ -128,7 +128,11 @@ namespace HttpClientMethods.Methods
                 {
                     // Return a specific status indicating the request was stopped
                     return Results.StatusCode(499);
-                }              
+                }
+                finally
+                {
+                    cancellationManager.Cancel(connectionId);
+                }
             }).WithName("GetCommitsAsync");
 
 
@@ -164,9 +168,13 @@ namespace HttpClientMethods.Methods
 
                     await context.Response.WriteAsync($"----Processed: {count}-------\n", token);
                 }
-                catch (Exception) when (context.RequestAborted.IsCancellationRequested)
+                catch (OperationCanceledException)
                 {
                     // Client disconnected, stop silently
+                }
+                finally
+                {
+                    cancellationManager.Cancel(connectionId);
                 }
 
                 return Results.Empty;
