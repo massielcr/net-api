@@ -1,4 +1,5 @@
 ﻿using HttpClientMethods.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text.RegularExpressions;
@@ -9,36 +10,88 @@ namespace HttpClientMethods.Methods
     {
         public static void MapGetEndpoints(this WebApplication app)
         {
-            app.MapGet("/repos/count", async (IGetEndpointsService getEndpointsService) =>
-            {
-                int reposCount = await getEndpointsService.GetRepositoriesCountAsync();
+            #region Repositories
 
-                if (reposCount >= 0)
+            app.MapGet("/orgs/{orgname}/repos/count", async ([FromRoute] string orgname,
+                                                             [FromServices] IGetEndpointsService getEndpointsService) =>
+            {
+                int? reposCount = await getEndpointsService.GetRepositoriesCountAsync(orgname);
+
+                if (reposCount.HasValue)
                 {
-                    return Results.Ok(reposCount);
+                    return Results.Ok(reposCount.Value);
                 }
                 else
                 {
                     return Results.Problem("An error ocurred");
                 }               
 
-            }).WithName("GetRepositoriesCount");
+            }).WithName("GetRepositoriesCountAsync");
 
 
-            app.MapGet("/repos", async (IGetEndpointsService getEndpointsService) =>
+            app.MapGet("/orgs/{orgname}/repos", async ([FromRoute] string orgName, 
+                                                       [FromQuery] int page, [FromQuery] int perPage, [FromQuery] int totalPages, [FromQuery(Name = "cid")] string connectionId, 
+                                                       [FromServices] IGetEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager) =>
             {
-                IEnumerable<string> repos = await getEndpointsService.GetAllRepositoriesAsync();
+                CancellationToken token = cancellationManager.GetToken(connectionId, 30);
 
-                if (repos.Any())
+                try
                 {
-                    return Results.Ok(repos);
+                    IEnumerable<string> repos = await getEndpointsService.GetRepositoriesAsync(orgName, page, perPage, totalPages, token);
+
+                    if (repos.Any())
+                    {
+                        return Results.Ok(repos);
+                    }
+                    else
+                    {
+                        return Results.Problem("No repos");
+                    }
+                }
+                finally
+                {
+                    cancellationManager.Cancel(connectionId);
+                }                
+
+            }).WithName("GetRepositoriesAsync");
+
+
+            app.MapGet("/orgs/{orgname}/repos/stream", async () =>
+            {
+                await Task.Delay(1000);
+                return Results.Ok("Hello world");
+
+            }).WithName("GetRepositoriesStreamAsync");
+
+
+            app.MapGet("/orgs/{orgname}/repos/stream/cancel", async () =>
+            {
+                await Task.Delay(1000);
+                return Results.Ok("Hello world");
+
+            }).WithName("GetRepositoriesStreamCancelAsync");
+
+
+            #endregion
+
+
+            #region Commits
+
+            app.MapGet("/orgs/{orgname}/repos/{reponame}/commits/count", async ([FromRoute] string orgName, [FromRoute] string reponame,
+                                                                                [FromServices] IGetEndpointsService getEndpointsService) =>
+            {
+                int commitsCount = await getEndpointsService.GetCommitsCountAsync(orgName, reponame);
+
+                if (commitsCount >= 0)
+                {
+                    return Results.Ok(commitsCount);
                 }
                 else
                 {
-                    return Results.Problem("No repos");
-                }               
+                    return Results.Problem("An error ocurred");
+                }
 
-            }).WithName("GetRepositories");
+            }).WithName("GetCommitsCountAsync");
 
 
             app.MapGet("/orgs/{orgname}/repos/{reponame}/commits", async ([FromRoute] string orgname, [FromRoute] string reponame,
@@ -50,20 +103,20 @@ namespace HttpClientMethods.Methods
 
                 try
                 {
-                    (List<(string commitMessage, DateTime commitDate)> commits, int total) result = await getEndpointsService.GetRepositoryCommits(orgname, reponame, page, perPage, totalPages, token);
+                    IEnumerable<(string commitMessage, DateTime commitDate)> result = await getEndpointsService.GetCommitsAsync(orgname, reponame, page, perPage, totalPages, token);
 
 
-                    if (result.commits != null && result.commits.Any())
+                    if (result != null && result.Any())
                     {
                         return Results.Ok(new
                         {
-                            Commits = result.commits.Select(c =>
+                            Commits = result.Select(c =>
                             {
                                 var decodedMessage = WebUtility.HtmlDecode(c.commitMessage);
                                 var cleanMessage = Regex.Replace(decodedMessage.Replace("\n", " "), @"[^a-zA-Z0-9\s]", "").Trim();
                                 return $"{c.commitDate} -- {cleanMessage}";
                             }),
-                            Total = result.total
+                            Total = result.Count()
                         });
                     }
                     else
@@ -76,31 +129,58 @@ namespace HttpClientMethods.Methods
                     // Return a specific status indicating the request was stopped
                     return Results.StatusCode(499);
                 }              
-            }).WithName("GetCommits");
+            }).WithName("GetCommitsAsync");
 
 
-            app.MapGet("/orgs/{orgname}/repos/{reponame}/commitstream", async ([FromRoute] string orgname, [FromRoute] string reponame,
+            app.MapGet("/orgs/{orgname}/repos/{reponame}/commits/stream", async ([FromRoute] string orgname, [FromRoute] string reponame,
                                                                           [FromQuery(Name = "page")] int page, [FromQuery(Name = "perPage")] int perPage, [FromQuery(Name = "totalPages")] int totalPages,
                                                                           [FromQuery(Name = "cid")] string connectionId,
-                                                                          [FromServices] IGetEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager) =>
+                                                                          [FromServices] IGetEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager, HttpContext context) =>
             {
+                var responseFeature = context.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpResponseBodyFeature>();
+                responseFeature?.DisableBuffering();
+
                 CancellationToken token = cancellationManager.GetToken(connectionId, 30);
+
+                context.Response.ContentType = "application/text";
 
                 try
                 {
-                    IAsyncEnumerable<(string commitMessage, DateTime commitDate)> commitStream = getEndpointsService.GetRepositoryCommitsStreamAsync(orgname, reponame, page, perPage, totalPages, token);
 
-                    return Results.Ok(commitStream.Select(c => new
+                    IAsyncEnumerable<(string commitMessage, DateTime commitDate)> commitsStream = getEndpointsService.GetCommitsStreamAsync(orgname, reponame, page, perPage, totalPages, token);
+
+                    int count = 0;
+
+                    await foreach (var commit in commitsStream.WithCancellation(token))
                     {
-                        Commit = $"{c.commitDate} - {c.commitMessage}"
-                    }));
+                        count++;
+
+                        string result = $"{commit.commitDate}-{commit.commitMessage}";
+
+                        await context.Response.WriteAsync($"{result}\n", token);
+
+                        await context.Response.Body.FlushAsync(token);
+                    }
+
+                    await context.Response.WriteAsync($"----Processed: {count}-------\n", token);
                 }
-                catch (OperationCanceledException)
+                catch (Exception) when (context.RequestAborted.IsCancellationRequested)
                 {
-                    // Return a specific status indicating the request was stopped
-                    return Results.StatusCode(499);
+                    // Client disconnected, stop silently
                 }
-            });
+
+                return Results.Empty;
+
+            }).WithName("GetCommitsStreamAsync");
+
+
+            app.MapGet("/orgs/{orgname}/repos/{reponame}/commits/streams/cancel",() =>
+            {
+
+            }).WithName("GetCommitsStreamCancelAsync");
+
+
+            #endregion
 
 
             app.MapPost("/cancel-work", ([FromQuery(Name ="cid")] string connectionId, [FromServices] CancellationManager cancellationManager) => {

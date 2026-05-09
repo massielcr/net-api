@@ -16,57 +16,158 @@ namespace HttpClientMethods.Services
         #region relativeUri
 
         //GetAsync(String)
-        public async Task<int> GetRepositoriesCountAsync()
+        public async Task<int?> GetRepositoriesCountAsync(string orgName)
         {
-            int result = -1;
+            int? result = null;
 
             HttpClient client = clientFactory.CreateClient();
 
             client.BaseAddress = new Uri(BaseUrl);
+
             client.DefaultRequestHeaders.Clear();
+           
             client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
 
-            string relativeUri = $"orgs/dotnet/repos";
+            string relativeUri = $"orgs/{orgName}";
 
             try
             {
-                using HttpResponseMessage response = await client.GetAsync(relativeUri);
+                using HttpResponseMessage response = await client.GetAsync(relativeUri).ConfigureAwait(false);
 
                 response.EnsureSuccessStatusCode();
 
-                using Stream stream = await response.Content.ReadAsStreamAsync();
+                using Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
-                IEnumerable<JsonElement>? repositories = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(stream);
+                JsonElement? organization = await JsonSerializer.DeserializeAsync<JsonElement>(stream).ConfigureAwait(false);
 
-                return repositories?.Count() ?? result;
-
+                if (organization.HasValue && organization.Value.TryGetProperty("public_repos", out var count))
+                {
+                    result = count.GetInt32();
+                    return result;
+                }
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"The requestUri is not an absolute URI and BaseAddress isn't set.{ex.Message}");
-                return result;
             }
             catch (UriFormatException ex)
             {
                 Console.WriteLine($"The provided request URI is not valid relative or absolute URI: {ex.Message}");
-                return result;
             }
             catch (HttpRequestException ex)
             {
                 Console.WriteLine($"The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response: {ex.Message}");
                 Console.WriteLine($".NET Framework only: the request timed out. {ex.Message}");
-                return result;
             }
             catch (OperationCanceledException ex)
             {
-                Console.WriteLine($".NET Core and .NET 5 and later only: The request failed due to timeout. {ex.Message}");
-                return result;
-            }            
+                Console.WriteLine($".NET Core and .NET 5 and later only: The request failed due to timeout. {ex.Message}");                
+            }
+
+            return result;
         }
 
+
+        //GetAsync(String, CancellationToken)
+        public async Task<IEnumerable<string>> GetRepositoriesAsync(string orgName, int page, int perPage, int totalPages, CancellationToken cancellationToken)
+        {
+            HttpClient client = clientFactory.CreateClient();
+
+            client.BaseAddress = new Uri(BaseUrl);
+
+            client.DefaultRequestHeaders.Clear();
+
+            client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+
+            List<string> result = [];
+
+            try
+            {
+                int counter = 0;
+                bool shouldContinue = true;
+
+                while (shouldContinue)
+                {
+                    string? relativeUri = $"orgs/{orgName}/repos";
+
+                    using HttpResponseMessage response = await client.GetAsync(relativeUri, cancellationToken).ConfigureAwait(false);
+
+                    response.EnsureSuccessStatusCode();
+
+                    using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+
+                    IEnumerable<JsonElement>? repositories = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                    if (repositories != null && repositories.Any())
+                    {
+                        result.AddRange(repositories.Select(repo => repo.GetProperty("name").GetString() ?? string.Empty).ToList());
+                    }
+
+                    counter++;
+
+                    relativeUri = GetNextPageUrl(response.Headers);
+
+                    shouldContinue = counter < totalPages && !string.IsNullOrEmpty(relativeUri);
+                }
+
+                return result.OrderBy(name => name).Select((name, index) => $"{index + 1} -  {name}").ToList();
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine("The requestUri is not an absolute URI and BaseAddress isn't set.");
+            }
+            catch (UriFormatException ex)
+            {
+                Console.WriteLine("The provided request URI is not valid relative or absolute URI.");
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response.");
+                Console.WriteLine(".NET Framework only: the request timed out.");
+            }
+            catch (OperationCanceledException ex)
+            {
+                Console.WriteLine(".NET Core and .NET 5 and later only: The request failed due to timeout.");
+                
+            }
+
+            return result;
+        }
+
+
+        //GetAsync(String, HttpCompletionOption)
+        public async IAsyncEnumerable<string> GetRepositoriesStreamAsync(string orgName, int page, int perPage, int totalPages)
+        {
+            yield break;
+        }
+
+
         //GetAsync(String, HttpCompletionOption, CancellationToken)
-        public async Task<(List<(string commitMessage, DateTime commitDate)> commits, int total)> GetRepositoryCommits(string orgName, string repositoryName, int page, int perPage, int totalPages, CancellationToken cancellationToken)
+        public async IAsyncEnumerable<string> GetRepositoriesStreamAsync(string orgName, int page, int perPage, int totalPages, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            yield break;
+        }
+
+
+        #endregion
+
+
+
+        #region Uri
+
+        //GetAsync(Uri)
+        public async Task<int> GetCommitsCountAsync(string orgName, string repositoryName)
+        {
+            return 1;
+        }
+
+        
+        //GetAsync(Uri, CancellationToken)
+        public async Task<IEnumerable<(string commitMessage, DateTime commitDate)>> GetCommitsAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, CancellationToken cancellationToken)
         {
             HttpClient client = clientFactory.CreateClient();
 
@@ -75,7 +176,7 @@ namespace HttpClientMethods.Services
             client.DefaultRequestHeaders.UserAgent.ParseAdd("MyTestService");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
 
-            (List<(string commitMessage, DateTime commitDate)> commits, int total) result = (new List<(string commitMessage, DateTime commitDate)>(), 0);
+            List<(string commitMessage, DateTime commitDate)> result = new List<(string commitMessage, DateTime commitDate)>();
 
             try
             {
@@ -85,7 +186,7 @@ namespace HttpClientMethods.Services
 
                     string relativeUri = $"repos/{orgName}/{repositoryName}/commits?page={page}&per_page={perPage}";
 
-                    using HttpResponseMessage response = await client.GetAsync(relativeUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                    using HttpResponseMessage response = await client.GetAsync(relativeUri, cancellationToken);
 
                     response.EnsureSuccessStatusCode();
 
@@ -106,11 +207,9 @@ namespace HttpClientMethods.Services
                             DateTime date = commitDetail.GetProperty("committer").GetProperty("date").GetDateTime();
 
                             var cleanMessage = _cleanMessageRegex.Replace(WebUtility.HtmlDecode(rawMsg).Replace("\n", " "), "").Trim();
-                            result.commits.Add((cleanMessage, date));
+                            result.Add((cleanMessage, date));
                         }
                     }
-
-                    result.total += commits.Count();
 
                     page++;
                 }
@@ -132,7 +231,7 @@ namespace HttpClientMethods.Services
                 Console.WriteLine("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response. ");
                 Console.WriteLine(".NET Framework only: the request timed out.");
                 return result;
-            }            
+            }
             catch (OperationCanceledException ex)
             {
                 Console.WriteLine("The cancellation token was canceled. This exception is stored into the returned task.");
@@ -141,64 +240,17 @@ namespace HttpClientMethods.Services
             }
         }
 
-        #endregion
+        
 
-        #region Uri
-
-        //GetAsync(Uri)
-        public async Task<IEnumerable<string>> GetAllRepositoriesAsync()
+        //GetAsync(Uri, HttpCompletionOption)
+        public async IAsyncEnumerable<(string commitMessage, DateTime commitDate)> GetCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages)
         {
-            HttpClient client = clientFactory.CreateClient();
-
-            client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
-
-            Uri uri = new($"{BaseUrl}orgs/dotnet/repos");
-
-            try
-            {
-                using HttpResponseMessage response = await client.GetAsync(uri);
-
-                response.EnsureSuccessStatusCode();
-
-                using Stream stream = await response.Content.ReadAsStreamAsync();
-
-                var repositories = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(stream);
-
-                return repositories?
-                        .Select(repo => repo.GetProperty("name").GetString() ?? string.Empty)
-                        .OrderBy(name => name)
-                        .Select((name, index) => $"{index + 1} -  {name}")
-                        .ToList() ?? [];
-
-            }
-            catch (InvalidOperationException ex)
-            {
-                Console.WriteLine("The requestUri is not an absolute URI and BaseAddress isn't set.");
-                return [];
-            }
-            catch (UriFormatException ex)
-            {
-                Console.WriteLine("The provided request URI is not valid relative or absolute URI.");
-                return [];
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.WriteLine("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response.");
-                Console.WriteLine(".NET Framework only: the request timed out.");
-                return [];
-            }
-            catch (OperationCanceledException ex)
-            {
-                Console.WriteLine(".NET Core and .NET 5 and later only: The request failed due to timeout.");
-                return [];
-            }            
+            yield break;
         }
 
 
         //GetAsync(Uri, HttpCompletionOption, CancellationToken)
-        public async IAsyncEnumerable<(string commitMessage, DateTime commitDate)> GetRepositoryCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<(string commitMessage, DateTime commitDate)> GetCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             HttpClient client = clientFactory.CreateClient();
 
@@ -279,5 +331,83 @@ namespace HttpClientMethods.Services
         }
 
         #endregion
+
+
+
+        private string? GetNextPageUrl(HttpResponseHeaders headers)
+        {
+            if (!headers.TryGetValues("Link", out var values)) return null;
+
+            // The header looks like: <url1>; rel="next", <url2>; rel="last"
+            var linkHeader = values.First();
+            var links = linkHeader.Split(',');
+            var nextLink = links.FirstOrDefault(l => l.Contains("rel=\"next\""));
+
+            if (nextLink != null)
+            {
+                // Extract URL between < and >
+                int start = nextLink.IndexOf("<") + 1;
+                int end = nextLink.IndexOf(">");
+                return nextLink.Substring(start, end - start);
+            }
+
+            return null;
+        }
+
+
+
+
+
+
+
+        //public async Task<IEnumerable<string>> GetAllRepositoriesAsync()
+        //{
+        //    HttpClient client = clientFactory.CreateClient();
+
+        //    client.DefaultRequestHeaders.Clear();
+        //    client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
+        //    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
+
+        //    Uri uri = new($"{BaseUrl}orgs/dotnet/repos");
+
+        //    try
+        //    {
+        //        using HttpResponseMessage response = await client.GetAsync(uri);
+
+        //        response.EnsureSuccessStatusCode();
+
+        //        using Stream stream = await response.Content.ReadAsStreamAsync();
+
+        //        var repositories = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(stream);
+
+        //        return repositories?
+        //                .Select(repo => repo.GetProperty("name").GetString() ?? string.Empty)
+        //                .OrderBy(name => name)
+        //                .Select((name, index) => $"{index + 1} -  {name}")
+        //                .ToList() ?? [];
+
+        //    }
+        //    catch (InvalidOperationException ex)
+        //    {
+        //        Console.WriteLine("The requestUri is not an absolute URI and BaseAddress isn't set.");
+        //        return [];
+        //    }
+        //    catch (UriFormatException ex)
+        //    {
+        //        Console.WriteLine("The provided request URI is not valid relative or absolute URI.");
+        //        return [];
+        //    }
+        //    catch (HttpRequestException ex)
+        //    {
+        //        Console.WriteLine("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response.");
+        //        Console.WriteLine(".NET Framework only: the request timed out.");
+        //        return [];
+        //    }
+        //    catch (OperationCanceledException ex)
+        //    {
+        //        Console.WriteLine(".NET Core and .NET 5 and later only: The request failed due to timeout.");
+        //        return [];
+        //    }
+        //}
     }
 }
