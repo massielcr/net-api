@@ -32,7 +32,7 @@ Accept: application/json
 
 ### GetAsync(Uri, CancellationToken)
 
-GET {{HttpClientMethods_HostAddress}}/orgs/dotnet/repos/efcore/commits?page=1&perPage=10&totalPages=50&cid=1
+GET {{HttpClientMethods_HostAddress}}/orgs/dotnet/repos/efcore/commits?page=1&perPage=10&totalPages=1&cid=1
 Accept: application/json
 
 

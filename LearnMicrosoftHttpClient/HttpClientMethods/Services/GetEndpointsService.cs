@@ -349,9 +349,11 @@ namespace HttpClientMethods.Services
 
                 using (response)
                 {
-                    IAsyncEnumerable<JsonElement> commitsStream = response.Content.ReadFromJsonAsAsyncEnumerable<JsonElement>(cancellationToken: cancellationToken);
+                    using Stream commitsStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
-                    await foreach (var commit in commitsStream.WithCancellation(cancellationToken))
+                    IAsyncEnumerable<JsonElement> commits = JsonSerializer.DeserializeAsyncEnumerable<JsonElement>(commitsStream, cancellationToken: cancellationToken);
+
+                    await foreach (var commit in commits)
                     {
                         hasCommits = true;
 
@@ -361,7 +363,7 @@ namespace HttpClientMethods.Services
                         var decoded = WebUtility.HtmlDecode(rawCommitMessage);
                         var cleanMessage = _cleanMessageRegex.Replace(decoded.Replace("\n", " "), "").Trim();
 
-                        yield return (cleanMessage, commitDate);
+                        yield return (cleanMessage, commitDate);                        
                     }                    
                 }
 

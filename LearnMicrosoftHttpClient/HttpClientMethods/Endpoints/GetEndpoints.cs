@@ -141,19 +141,13 @@ namespace HttpClientMethods.Methods
                                                                           [FromQuery(Name = "cid")] string connectionId,
                                                                           [FromServices] IGetEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager, HttpContext context) =>
             {
-                var responseFeature = context.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpResponseBodyFeature>();
-                responseFeature?.DisableBuffering();
-
                 CancellationToken token = cancellationManager.GetToken(connectionId, 30);
 
-                context.Response.ContentType = "application/text";
+                int count = 0;
 
                 try
                 {
-
                     IAsyncEnumerable<(string commitMessage, DateTime commitDate)> commitsStream = getEndpointsService.GetCommitsStreamAsync(orgname, reponame, page, perPage, totalPages, token);
-
-                    int count = 0;
 
                     await foreach (var commit in commitsStream.WithCancellation(token))
                     {
@@ -164,13 +158,16 @@ namespace HttpClientMethods.Methods
                         await context.Response.WriteAsync($"{result}\n", token);
 
                         await context.Response.Body.FlushAsync(token);
+
+                        await Task.Delay(TimeSpan.FromSeconds(1));
                     }
 
                     await context.Response.WriteAsync($"----Processed: {count}-------\n", token);
                 }
                 catch (OperationCanceledException)
                 {
-                    // Client disconnected, stop silently
+                    await context.Response.WriteAsync("Client disconnected\n", token);
+                    await context.Response.Body.FlushAsync(token);
                 }
                 finally
                 {

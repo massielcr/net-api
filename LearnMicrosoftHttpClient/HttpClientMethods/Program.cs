@@ -37,7 +37,7 @@ app.Run();
 
 
 [JsonSerializable(typeof(string))]
-[JsonSerializable(typeof(IEnumerable<JsonElement>))]
+[JsonSerializable(typeof(IEnumerable<(string commitMessage, DateTime commitDate)>))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
 
