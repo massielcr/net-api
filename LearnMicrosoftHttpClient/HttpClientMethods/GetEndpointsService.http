@@ -27,7 +27,7 @@ Accept: application/json
 
 ### GetAsync(Uri)
 
-GET {{HttpClientMethods_HostAddress}}/orgs/dotnet/repos/efcore/commits/count
+GET {{HttpClientMethods_HostAddress}}/repos/dotnet/efcore/commits/count
 Accept: application/json
 
 ### GetAsync(Uri, CancellationToken)

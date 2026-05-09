@@ -160,9 +160,54 @@ namespace HttpClientMethods.Services
         #region Uri
 
         //GetAsync(Uri)
-        public async Task<int> GetCommitsCountAsync(string orgName, string repositoryName)
+        public async Task<int?> GetCommitsCountAsync(string owner, string repo)
         {
-            return 1;
+            HttpClient client = clientFactory.CreateClient();
+
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_githubToken}");
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+
+            try
+            {
+                Uri uri = new($"{BaseUrl}repos/{owner}/{repo}/stats/participation");
+
+                using HttpResponseMessage response = await client.GetAsync(uri);
+
+                response.EnsureSuccessStatusCode();
+
+                Stream content = await response.Content.ReadAsStreamAsync();
+
+                if (content != null)
+                {
+                    JsonElement repository = await JsonSerializer.DeserializeAsync<JsonElement>(content);
+
+                    if (repository.TryGetProperty("all", out var allCommits))
+                    {
+                        return allCommits.EnumerateArray().Sum(c => c.GetInt32());
+                    }
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                Console.WriteLine("The requestUri is not an absolute URI and BaseAddress isn't set.");
+            }
+            catch (UriFormatException)
+            {
+                Console.WriteLine("The provided request URI is not valid relative or absolute URI.");
+            }
+            catch (HttpRequestException)
+            {
+                Console.WriteLine("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response.");
+                Console.WriteLine(".NET Framework only: the request timed out.");
+            }
+            catch(OperationCanceledException)
+            {
+                Console.WriteLine(".NET Core and .NET 5 and later only: The request failed due to timeout.");       
+            }
+
+            return null;
         }
 
         

@@ -25,7 +25,7 @@
         #region Uri
 
         //GetAsync(Uri)
-        Task<int> GetCommitsCountAsync(string orgName, string repositoryName);
+        Task<int?> GetCommitsCountAsync(string owner, string repo);
 
         //GetAsync(Uri, CancellationToken)
         Task<IEnumerable<(string commitMessage, DateTime commitDate)>> GetCommitsAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, CancellationToken cancellationToken);

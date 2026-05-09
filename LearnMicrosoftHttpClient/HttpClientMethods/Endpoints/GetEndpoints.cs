@@ -77,14 +77,14 @@ namespace HttpClientMethods.Methods
 
             #region Commits
 
-            app.MapGet("/orgs/{orgname}/repos/{reponame}/commits/count", async ([FromRoute] string orgName, [FromRoute] string reponame,
-                                                                                [FromServices] IGetEndpointsService getEndpointsService) =>
+            app.MapGet("/repos/{owner}/{repo}/commits/count", async ([FromRoute] string owner, [FromRoute] string repo,
+                                                                     [FromServices] IGetEndpointsService getEndpointsService) =>
             {
-                int commitsCount = await getEndpointsService.GetCommitsCountAsync(orgName, reponame);
+                int? commitsCount = await getEndpointsService.GetCommitsCountAsync(owner, repo);
 
-                if (commitsCount >= 0)
+                if (commitsCount.HasValue)
                 {
-                    return Results.Ok(commitsCount);
+                    return Results.Ok(commitsCount.Value);
                 }
                 else
                 {
