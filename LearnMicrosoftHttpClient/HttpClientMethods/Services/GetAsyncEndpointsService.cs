@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace HttpClientMethods.Services
 {
-    public class GetEndpointsService(IHttpClientFactory clientFactory) : IGetEndpointsService
+    public class GetAsyncEndpointsService(IHttpClientFactory clientFactory) : IGetAsyncEndpointsService
     {
         private const string BaseUrl = "https://api.github.com/";
         private readonly string? _githubToken = Environment.GetEnvironmentVariable("GITHUB_TOKEN");

@@ -1,4 +1,4 @@
-using HttpClientMethods.Methods;
+using HttpClientMethods.Endpoints;
 using HttpClientMethods.Services;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -15,7 +15,8 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<CancellationManager>();
 
-builder.Services.AddScoped<IGetEndpointsService, GetEndpointsService>();
+builder.Services.AddScoped<IGetAsyncEndpointsService, GetAsyncEndpointsService>();
+builder.Services.AddScoped<ISendAsyncEndpointsService, SendAsyncEndpointsService>();
 
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -29,8 +30,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.MapGetEndpoints();
-
+app.MapGetAsyncEndpoints();
+app.MapSendAsyncEndpoints();
 
 
 app.Run();

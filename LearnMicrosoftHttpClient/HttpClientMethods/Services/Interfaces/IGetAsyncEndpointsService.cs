@@ -1,6 +1,6 @@
 ﻿namespace HttpClientMethods.Services
 {
-    public interface IGetEndpointsService
+    public interface IGetAsyncEndpointsService
     {
         #region relativeUri
 
@@ -19,7 +19,6 @@
         IAsyncEnumerable<string> GetRepositoriesStreamAsync(string orgName, int page, int perPage, int totalPages, CancellationToken cancellationToken);
 
         #endregion
-
 
 
         #region Uri
