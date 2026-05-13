@@ -376,7 +376,6 @@ namespace HttpClientMethods.Services
         #endregion
 
 
-
         private string? GetNextPageUrl(HttpResponseHeaders headers)
         {
             if (!headers.TryGetValues("Link", out var values)) return null;
@@ -396,61 +395,5 @@ namespace HttpClientMethods.Services
 
             return null;
         }
-
-
-
-
-
-
-
-        //public async Task<IEnumerable<string>> GetAllRepositoriesAsync()
-        //{
-        //    HttpClient client = clientFactory.CreateClient();
-
-        //    client.DefaultRequestHeaders.Clear();
-        //    client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
-        //    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
-
-        //    Uri uri = new($"{BaseUrl}orgs/dotnet/repos");
-
-        //    try
-        //    {
-        //        using HttpResponseMessage response = await client.GetAsync(uri);
-
-        //        response.EnsureSuccessStatusCode();
-
-        //        using Stream stream = await response.Content.ReadAsStreamAsync();
-
-        //        var repositories = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(stream);
-
-        //        return repositories?
-        //                .Select(repo => repo.GetProperty("name").GetString() ?? string.Empty)
-        //                .OrderBy(name => name)
-        //                .Select((name, index) => $"{index + 1} -  {name}")
-        //                .ToList() ?? [];
-
-        //    }
-        //    catch (InvalidOperationException ex)
-        //    {
-        //        Console.WriteLine("The requestUri is not an absolute URI and BaseAddress isn't set.");
-        //        return [];
-        //    }
-        //    catch (UriFormatException ex)
-        //    {
-        //        Console.WriteLine("The provided request URI is not valid relative or absolute URI.");
-        //        return [];
-        //    }
-        //    catch (HttpRequestException ex)
-        //    {
-        //        Console.WriteLine("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response.");
-        //        Console.WriteLine(".NET Framework only: the request timed out.");
-        //        return [];
-        //    }
-        //    catch (OperationCanceledException ex)
-        //    {
-        //        Console.WriteLine(".NET Core and .NET 5 and later only: The request failed due to timeout.");
-        //        return [];
-        //    }
-        //}
     }
 }
