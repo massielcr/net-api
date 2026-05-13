@@ -15,7 +15,8 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<CancellationManager>();
 
-builder.Services.AddScoped<IGetAsyncEndpointsService, GetAsyncEndpointsService>();
+builder.Services.AddScoped<IGetAsyncEndpointsService,  GetAsyncEndpointsService>();
+builder.Services.AddScoped<IPostAsyncEndpointsService, PostAsyncEndpointsService>();
 builder.Services.AddScoped<ISendAsyncEndpointsService, SendAsyncEndpointsService>();
 
 
@@ -31,6 +32,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGetAsyncEndpoints();
+app.MapPostAsyncEndpoints();
 app.MapSendAsyncEndpoints();
 
 
