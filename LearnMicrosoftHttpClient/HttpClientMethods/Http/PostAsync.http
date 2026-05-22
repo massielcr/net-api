@@ -1,7 +1,6 @@
-@HttpClientMethods_HostAddress = http://localhost:5099
-
 ### Create a Personal Repository via GitHub REST API
-POST {{HttpClientMethods_HostAddress}}/postasync/repos
+
+POST {{HostAddress}}/postasync/repos
 Accept: application/vnd.github+json
 User-Agent: MyTestService
 Content-Type: application/json

@@ -1,0 +1,12 @@
+@username = massielcr
+
+### GetByteArrayAsync(String)   ---    GetByteArrayAsync_DownloadLogoStringAsync
+
+GET {{HostAddress}}/getbytearrayasyncapi/users/{{username}}/downloadlogostring?overwrite=true
+Accept: application/json
+
+### GetByteArrayAsync(Uri)      ---    GetByteArrayAsync_DownloadLogoUriAsync    
+
+GET {{HostAddress}}/getbytearrayasyncapi/users/{{username}}/downloadlogouri?overwrite=true
+Accept: application/json
+

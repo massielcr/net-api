@@ -1,9 +1,0 @@
-@HttpClientMethods_HostAddress = http://localhost:5099
-
-### GetAsync(String, CancellationToken) - CancellationToken
-GET {{HttpClientMethods_HostAddress}}/sendasync/orgs/dotnet/repos?page=1&perPage=5&totalPages=2&cid=1
-Accept: application/json
-
-### GetAsync(String, CancellationToken) - CancellationToken
-GET {{HttpClientMethods_HostAddress}}/sendasync/orgs/dotnet/repos/parallel?page=1&perPage=5&totalPages=2&cid=1
-Accept: application/json

@@ -1,4 +1,5 @@
 using HttpClientMethods.Endpoints;
+using HttpClientMethods.Helpers;
 using HttpClientMethods.Services;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -16,8 +17,11 @@ builder.Services.AddHttpClient();
 builder.Services.AddSingleton<CancellationManager>();
 
 builder.Services.AddScoped<IGetAsyncEndpointsService,  GetAsyncEndpointsService>();
+builder.Services.AddScoped<IGetByteArrayAsyncEndpointsService, GetByteArrayAsyncEndpointsService>();
 builder.Services.AddScoped<IPostAsyncEndpointsService, PostAsyncEndpointsService>();
 builder.Services.AddScoped<ISendAsyncEndpointsService, SendAsyncEndpointsService>();
+
+builder.Services.AddSingleton<IFileService, FileService>();
 
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -31,9 +35,36 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseStaticFiles();
+
 app.MapGetAsyncEndpoints();
+app.MapGetByteArrayAsyncEndpoints();
 app.MapPostAsyncEndpoints();
 app.MapSendAsyncEndpoints();
+
+
+app.UseExceptionHandler(exceptionApp =>
+{
+    exceptionApp.Run(async context =>
+    {
+        var exceptionHandlerPathFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+        var exception = exceptionHandlerPathFeature?.Error;
+
+        // Resolve the logger from the app container
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        logger.LogError(exception, "An unhandled exception occurred during the request.");
+
+        // Return a clean, safe JSON error payload to the client
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+
+        await context.Response.WriteAsJsonAsync(new
+        {
+            Status = 500,
+            Detail = "An unexpected server error occurred. Please try again later."
+        });
+    });
+});
 
 
 app.Run();
