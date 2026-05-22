@@ -45,9 +45,10 @@ namespace HttpClientMethods.Endpoints
                 });
 
             })
-            .WithName("GetByteArrayAsync_DownloadLogoString");
-
-
+            .WithName("GetByteArrayAsync_DownloadLogoStringAsync")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status500InternalServerError);
 
 
             app.MapGet("/getbytearrayasyncapi/users/{username}/downloadlogouri", async ([FromRoute] string username, 

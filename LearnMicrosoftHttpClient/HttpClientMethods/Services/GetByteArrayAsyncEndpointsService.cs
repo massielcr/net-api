@@ -20,23 +20,48 @@ namespace HttpClientMethods.Services
 
             string relativeUri = $"users/{username}";
 
-            using HttpResponseMessage response = await httpClient.GetAsync(relativeUri);
+            try
+            {
+                using HttpResponseMessage response = await httpClient.GetAsync(relativeUri);
 
-            if (!response.IsSuccessStatusCode) { return []; }
+                if (!response.IsSuccessStatusCode) { return []; }
 
-            string responseContent = await response.Content.ReadAsStringAsync();
+                using Stream responseStream = await response.Content.ReadAsStreamAsync();
 
-            using var doc = JsonDocument.Parse(responseContent);
+                if (responseStream == null) { return []; }
 
-            if (!doc.RootElement.TryGetProperty("avatar_url", out var avatarProp)) { return []; }
+                using JsonDocument responseJson = await JsonDocument.ParseAsync(responseStream);
 
-            string? avatarUrl = avatarProp.GetString();
+                if (!responseJson.RootElement.TryGetProperty("avatar_url", out var avatarProp)) { return []; }
 
-            if (string.IsNullOrEmpty(avatarUrl)) { return []; }  
+                string? avatarUrl = avatarProp.GetString();
 
-            byte[] data = await httpClient.GetByteArrayAsync(avatarUrl);
+                if (string.IsNullOrEmpty(avatarUrl)) { return []; }
 
-            return data;
+                byte[] data = await httpClient.GetByteArrayAsync(avatarUrl);
+
+                return data;
+
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"The requestUri is not an absolute URI and BaseAddress isn't set.{ex.Message}");
+            }
+            catch (UriFormatException ex)
+            {
+                Console.WriteLine($"The provided request URI is not valid relative or absolute URI: {ex.Message}");
+            }
+            catch(HttpRequestException ex)
+            {
+                Console.WriteLine($"The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response: {ex.Message}");
+                Console.WriteLine($".NET Framework only: the request timed out. {ex.Message}");
+            }
+            catch(OperationCanceledException ex)
+            {
+                Console.WriteLine($".NET Core and .NET 5 and later only: The request failed due to timeout. {ex.Message}");
+            }
+
+            return [];
         }
 
         public Task<byte[]> DownloadLogoUriAsync(string username)

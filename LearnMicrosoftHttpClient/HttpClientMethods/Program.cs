@@ -1,7 +1,6 @@
 using HttpClientMethods.Endpoints;
 using HttpClientMethods.Helpers;
 using HttpClientMethods.Services;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateSlimBuilder(args);
