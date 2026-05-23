@@ -2,11 +2,11 @@
 
 ### GetByteArrayAsync(String)   ---    GetByteArrayAsync_DownloadAvatarStringAsync
 
-GET {{HostAddress}}/getbytearrayasyncapi/users/{{username}}/downloadavatarstring?overwrite=true
+GET {{HostAddress}}/getbytearrayasyncapi/users/{{username}}/downloadavatarstring?overwrite=true HTTP/2
 Accept: application/json
 
 ### GetByteArrayAsync(Uri)      ---    GetByteArrayAsync_DownloadAvatarUriAsync    
 
-GET {{HostAddress}}/getbytearrayasyncapi/users/{{username}}/downloadavataruri?overwrite=true
+GET {{HostAddress}}/getbytearrayasyncapi/users/{{username}}/downloadavataruri?overwrite=true HTTP/2
 Accept: application/json
 
