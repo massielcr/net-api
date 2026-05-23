@@ -1,8 +1,10 @@
-﻿namespace HttpClientMethods.Services
+﻿using HttpClientMethods.Models;
+
+namespace HttpClientMethods.Services
 {
     public interface IGetByteArrayAsyncEndpointsService
     {
-        public Task<byte[]> DownloadLogoStringAsync(string username);
-        public Task<byte[]> DownloadLogoUriAsync(string username);
+        public Task<GitHubAvatar?> DownloadLogoStringAsync(string username);
+        public Task<GitHubAvatar?> DownloadLogoUriAsync(string username);
     }
 }

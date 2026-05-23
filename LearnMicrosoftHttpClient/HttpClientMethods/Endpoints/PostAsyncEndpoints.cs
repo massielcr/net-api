@@ -8,7 +8,7 @@ namespace HttpClientMethods.Endpoints
     {
         public static void MapPostAsyncEndpoints(this WebApplication app)
         {
-            app.MapPost("postasync/repos", async ([FromBody] CreatePersonalRepoRequest repo, 
+            app.MapPost("postasync/repos", async ([FromBody] CreatePersonalRepoRequestDto repo, 
                                                    [FromServices] IPostAsyncEndpointsService postAsyncEndpointsService) => {
 
                 if (string.IsNullOrWhiteSpace(repo.Name))
