@@ -1,15 +1,21 @@
 ﻿using System.Collections.Concurrent;
 
-namespace HttpClientMethods.Methods
+namespace HttpClientMethods.Endpoints
 {
     public class CancellationManager
     {
         // Stores CTS by a unique key (e.g., a "JobId" or User ID)
         private readonly ConcurrentDictionary<string, CancellationTokenSource> _sources = new();
 
-        public CancellationToken GetToken(string key)
+        public CancellationToken GetToken(string key, int? seconds = null)
         {
             var cts = _sources.GetOrAdd(key, _ => new CancellationTokenSource());
+
+            if (seconds.HasValue)
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(seconds.Value));
+            }
+
             return cts.Token;
         }
 
@@ -19,14 +25,6 @@ namespace HttpClientMethods.Methods
             {
                 cts.Cancel();
                 cts.Dispose();
-            }
-        }
-
-        public void Cancel(string key, int seconds)
-        {
-            if (_sources.TryGetValue(key, out var cts))
-            {
-                cts.CancelAfter(TimeSpan.FromSeconds(seconds));
             }
         }
     }

@@ -1,5 +1,0 @@
-@HttpClientMethods_HostAddress = http://localhost:5099
-
-### GetAsync(String, CancellationToken) - CancellationToken
-POST {{HttpClientMethods_HostAddress}}/cancel-work?cid=1
-Accept: application/json

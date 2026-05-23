@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="HttpClientMethods.Data/HttpClientMethods.Data.csproj" Id="ebda6c2e-efea-40d7-b31d-fec60cd816db" />
   <Project Path="HttpClientMethods/HttpClientMethods.csproj" Id="3ee6ceff-e721-4da2-8c51-8ea3883e4be6" />
   <Project Path="WebAPIClient/WebAPIClient.csproj" />
 </Solution>
