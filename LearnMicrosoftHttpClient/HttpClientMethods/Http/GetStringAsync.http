@@ -1,14 +1,14 @@
 @owner = dotnet
+@repo1 = runtime
+@repo2 = aspnetcore
 
 
 ### GetStringAsync(String)   ---    GetStringAsync_GetRepositoryReadmeStringAsync
-@repo1 = runtime
 
 GET {{HostAddress}}/getstringasyncapi/{{owner}}/repos/{{repo1}}/readmestring HTTP/2
 Accept: text/markdown
 
 ### GetStringAsync(Uri)      ---    GetStringAsync_GetRepositoryReadmeUriAsync
-@repo2 = aspnetcore
 
 GET {{HostAddress}}/getstringasyncapi/{{owner}}/repos/{{repo2}}/readmeuri HTTP/2
 Accept: text/markdown

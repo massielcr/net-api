@@ -1,21 +1,24 @@
-### GetAsync(String)
+@owner = dotnet
+@repo1 = runtime
 
-GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos/count HTTP/2
+### GetAsync(String)                            ----    GetAsync_GetRepositoriesCountAsync
+
+GET {{HostAddress}}/getasyncapi/orgs/{{owner}}/repos/count HTTP/2
 Accept: application/json
 
-### GetAsync(String, CancellationToken)
+### GetAsync(String, CancellationToken)         ----    GetAsync_GetRepositoriesAsync
 
-GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos?page=1&perPage=5&totalPages=5&cid=1 HTTP/2
+GET {{HostAddress}}/getasyncapi/orgs/{{owner}}/repos?page=1&perPage=5&totalPages=1&cid=1 HTTP/2
 Accept: application/json
 
 ### GetAsync(String, HttpCompletionOption)
 
-GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos/stream?page=1&perPage=10&totalPages=2 HTTP/2
-Accept: application/json
+GET {{HostAddress}}/getasyncapi/repos/{{owner}}/{{repo1}}/readme HTTP/2
+Accept: text/html
 
 ### GetAsync(String, HttpCompletionOption, CancellationToken)
 
-GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos/stream/cancel?page=1&perPage=10&totalPages=1&cid=1 HTTP/2
+GET {{HostAddress}}/getasyncapi/orgs/{{owner}}/repos/stream/cancel?page=1&perPage=10&totalPages=1&cid=1 HTTP/2
 Accept: application/json
 
 

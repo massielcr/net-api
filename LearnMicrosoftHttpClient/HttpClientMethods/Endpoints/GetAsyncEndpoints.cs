@@ -17,17 +17,15 @@ namespace HttpClientMethods.Endpoints
             {
                 int? reposCount = await getEndpointsService.GetRepositoriesCountAsync(orgname);
 
-                if (reposCount.HasValue)
-                {
-                    return Results.Ok(reposCount.Value);
-                }
-                else
+                if (!reposCount.HasValue)
                 {
                     return Results.Problem("An error ocurred");
-                }               
+                }
+
+                return Results.Ok(reposCount.Value);
 
             })
-            .WithName("GetRepositoriesCountAsync")
+            .WithName("GetAsync_GetRepositoriesCountAsync")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status500InternalServerError);
 
@@ -42,31 +40,41 @@ namespace HttpClientMethods.Endpoints
                 {
                     IEnumerable<string> repos = await getEndpointsService.GetRepositoriesAsync(orgName, page, perPage, totalPages, token);
 
-                    if (repos.Any())
-                    {
-                        return Results.Ok(repos);
-                    }
-                    else
+                    if (!repos.Any())
                     {
                         return Results.Problem("No repos");
                     }
+
+                    return Results.Ok(repos);
                 }
                 finally
                 {
                     cancellationManager.Cancel(connectionId);
                 }                
 
-            }).WithName("GetRepositoriesAsync")
+            })
+            .WithName("GetAsync_GetRepositoriesAsync")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status500InternalServerError);
 
 
-            app.MapGet("/getasyncapi/orgs/{orgname}/repos/stream", async () =>
+            app.MapGet("/getasyncapi/repos/{owner}/{repo}/readme", async ([FromRoute] string owner, [FromRoute] string repo,
+                                                                          [FromServices] IGetAsyncEndpointsService getEndpointsService,
+                                                                          HttpRequest httpRequest) =>
             {
-                await Task.Delay(1000);
-                return Results.Ok("Hello world");
+                string contentType = httpRequest.Headers.Accept.FirstOrDefault()?.ToString() ?? "application/json";
 
-            }).WithName("GetRepositoriesStreamAsync")
+                string? readmeContent = await getEndpointsService.GetRepositoriesReadmeAsync(owner, repo, contentType);
+
+                if (string.IsNullOrEmpty(readmeContent))
+                {
+                    return Results.Problem("No readme");
+                }
+
+                return Results.Content(readmeContent, contentType);
+
+            })
+            .WithName("GetAsync_GetRepositoriesReadmeAsync")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status500InternalServerError);
 
@@ -76,7 +84,7 @@ namespace HttpClientMethods.Endpoints
                 await Task.Delay(1000);
                 return Results.Ok("Hello world");
 
-            }).WithName("GetRepositoriesStreamCancelAsync")
+            }).WithName("GetAsync_GetRepositoriesStreamCancelAsync")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status500InternalServerError);
 

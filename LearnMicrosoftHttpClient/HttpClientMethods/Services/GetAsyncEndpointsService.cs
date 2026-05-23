@@ -119,9 +119,56 @@ namespace HttpClientMethods.Services
 
 
         //GetAsync(String, HttpCompletionOption)
-        public async IAsyncEnumerable<string> GetRepositoriesStreamAsync(string orgName, int page, int perPage, int totalPages)
+        public async Task<string?> GetRepositoriesReadmeAsync(string owner, string repo, string contentType)
         {
-            yield break;
+            try
+            {
+                string relativeUri = $"repos/{owner}/{repo}/readme";
+
+                HttpClient httpClient = clientFactory.CreateClient("GitHub");
+
+                HttpResponseMessage response = await httpClient.GetAsync(relativeUri).ConfigureAwait(false);
+
+                if (!response.IsSuccessStatusCode) { return null; }
+
+                using Stream responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+                using JsonDocument? readmeJson = await JsonSerializer.DeserializeAsync<JsonDocument>(responseStream).ConfigureAwait(false);
+
+                if (readmeJson == null || !readmeJson.RootElement.TryGetProperty("html_url", out var htmlUrlProp)) { return null; }
+
+                string? htmlUrl = htmlUrlProp.GetString();
+
+                HttpClient htmlUrlClient = clientFactory.CreateClient();
+
+                HttpResponseMessage htmlUrlResponse = await htmlUrlClient.GetAsync(htmlUrl, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+
+                if (htmlUrlResponse.Content.Headers.ContentType?.MediaType != contentType) { return null; }
+
+                string fullPageHtml = await htmlUrlResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                return fullPageHtml;
+            }
+            catch (InvalidOperationException ex)
+            {
+                logger.LogError(ex, "The requestUri is not an absolute URI and BaseAddress isn't set.");
+            }
+            catch (UriFormatException ex)
+            {
+                logger.LogError(ex, "The provided request URI is not valid relative or absolute URI.");
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, "The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response.");
+                logger.LogError(ex, ".NET Framework only: the request timed out.");
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogError(ex, ".NET Core and .NET 5 and later only: The request failed due to timeout.");
+
+            }
+
+            return null;
         }
 
 

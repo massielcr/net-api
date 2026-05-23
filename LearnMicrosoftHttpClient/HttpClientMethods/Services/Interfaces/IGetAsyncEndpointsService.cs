@@ -12,7 +12,7 @@
 
 
         //GetAsync(String, HttpCompletionOption)
-        IAsyncEnumerable<string> GetRepositoriesStreamAsync(string orgName, int page, int perPage, int totalPages);
+        Task<string?> GetRepositoriesReadmeAsync(string owner, string repo, string contentType);
 
 
         //GetAsync(String, HttpCompletionOption, CancellationToken)
