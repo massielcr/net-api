@@ -8,7 +8,7 @@ var builder = WebApplication.CreateSlimBuilder(args);
 builder.Services.AddHttpClient("GitHub", client =>
 {
     client.BaseAddress = new Uri("https://api.github.com");
-    client.DefaultRequestHeaders.Add("Accept", "application/vnd.github.raw+json");
+    client.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3.raw");
     client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
 
     // Dynamically inject the token if it exists at startup
@@ -52,13 +52,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseStaticFiles();
 
-app.MapGetAsyncEndpoints();
-app.MapGetByteArrayAsyncEndpoints();
-app.MapGetStringAsyncEndpoints();
-app.MapPostAsyncEndpoints();
-app.MapSendAsyncEndpoints();
-
-
 app.UseExceptionHandler(exceptionApp =>
 {
     exceptionApp.Run(async context =>
@@ -77,6 +70,13 @@ app.UseExceptionHandler(exceptionApp =>
         await context.Response.WriteAsJsonAsync(new ErrorResponse(500, "An unexpected server error occurred. Please try again later."));
     });
 });
+
+app.MapGetAsyncEndpoints();
+app.MapGetByteArrayAsyncEndpoints();
+app.MapGetStringAsyncEndpoints();
+app.MapPostAsyncEndpoints();
+app.MapSendAsyncEndpoints();
+
 
 
 app.Run();

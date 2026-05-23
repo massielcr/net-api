@@ -33,10 +33,12 @@ namespace HttpClientMethods.Services
 
                 byte[] data = await imageClient.GetByteArrayAsync(avatarUrl);
 
+                if (data == null || data.Length == 0) { return null; }
+
                 return new GitHubAvatar
                 {
                     Data = data,
-                    ContentType = "image/png",
+                    ContentType = GetMimeTypeFromBytes(data),
                     ContentLength = data.Length
                 };
 
@@ -90,10 +92,12 @@ namespace HttpClientMethods.Services
 
                 byte[] data = await imageClient.GetByteArrayAsync(imageUri);
 
+                if (data == null || data.Length == 0) { return null; }
+
                 return new GitHubAvatar
                 {
                     Data = data,
-                    ContentType = "image/png",
+                    ContentType = GetMimeTypeFromBytes(data),
                     ContentLength = data.Length
                 };
             }
@@ -116,6 +120,32 @@ namespace HttpClientMethods.Services
             }
 
             return null;
+        }
+
+        private string GetMimeTypeFromBytes(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length < 4) return "application/octet-stream";
+
+            // JPEG: Starts with FF D8 FF
+            if (bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF)
+            {
+                return "image/jpeg";
+            }
+
+            // PNG: Starts with 89 50 4E 47
+            if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47)
+            {
+                return "image/png";
+            }
+
+            // GIF: Starts with 47 49 46 38 ("GIF8")
+            if (bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x38)
+            {
+                return "image/gif";
+            }
+
+            // Default fallback if unknown binary pattern
+            return "image/jpeg";
         }
     }
 }

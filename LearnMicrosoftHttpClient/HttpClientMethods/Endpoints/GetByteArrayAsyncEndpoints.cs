@@ -20,7 +20,7 @@ namespace HttpClientMethods.Endpoints
 
                 GitHubAvatar? avatar = await getByteArrayAsyncEndpointsService.DownloadAvatarStringAsync(username);
 
-                if (avatar == null || avatar.ContentLength == 0)
+                if (avatar == null || avatar.Data == null || avatar.ContentLength == 0)
                 {
                     return Results.NotFound($"Could not retrieve image data from GitHub for user '{username}'.");
                 }
@@ -29,7 +29,7 @@ namespace HttpClientMethods.Endpoints
                 string webRoot = webHostEnvironment.WebRootPath ?? Path.Combine(webHostEnvironment.ContentRootPath, "wwwroot");
                 string folderPath = Path.Combine(webRoot, "images");
 
-                bool isSaved = await fileService.SaveFileAsync(avatar!.Data!, folderPath, $"{username}_avatar.png", overwrite);
+                bool isSaved = await fileService.SaveFileAsync(avatar.Data, folderPath, $"{username}_avatar.png", overwrite);
 
                 if (!isSaved)
                 {
@@ -58,7 +58,7 @@ namespace HttpClientMethods.Endpoints
 
                 GitHubAvatar? avatar = await getByteArrayAsyncEndpointsService.DownloadAvatarUriAsync(username);
 
-                if (avatar == null || avatar.ContentLength == 0)
+                if (avatar == null || avatar.Data == null || avatar.ContentLength == 0)
                 {
                     return Results.NotFound($"Could not retrieve image data from GitHub for user '{username}'.");
                 }
@@ -66,7 +66,7 @@ namespace HttpClientMethods.Endpoints
                 string webRoot = webHostEnvironment.WebRootPath ?? Path.Combine(webHostEnvironment.ContentRootPath, "wwwroot");
                 string folderPath = Path.Combine(webRoot, "images");
 
-                bool isSaved = await fileService.SaveFileAsync(avatar!.Data!, folderPath, $"{username}_avatar.png", overwrite);
+                bool isSaved = await fileService.SaveFileAsync(avatar.Data, folderPath, $"{username}_avatar.png", overwrite);
 
                 if (!isSaved)
                 {
