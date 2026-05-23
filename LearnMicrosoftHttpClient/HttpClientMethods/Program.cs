@@ -9,7 +9,7 @@ builder.Services.AddHttpClient("GitHub", client =>
 {
     client.BaseAddress = new Uri("https://api.github.com");
     client.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3.raw");
-    client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
+    client.DefaultRequestHeaders.Add("User-Agent", "MyHttpClientMethodsTestService");
 
     // Dynamically inject the token if it exists at startup
     string? token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
@@ -31,6 +31,7 @@ builder.Services.AddSingleton<CancellationManager>();
 builder.Services.AddSingleton<IFileService, FileService>();
 
 builder.Services.AddScoped<IGetAsyncEndpointsService,  GetAsyncEndpointsService>();
+builder.Services.AddScoped<IGetStreamAsyncEndpointsService, GetStreamAsyncEndpointsService>();
 builder.Services.AddScoped<IGetByteArrayAsyncEndpointsService, GetByteArrayAsyncEndpointsService>();
 builder.Services.AddScoped<IGetStringAsyncEndpointsService, GetStringAsyncEndpointsService>();
 builder.Services.AddScoped<IPostAsyncEndpointsService, PostAsyncEndpointsService>();
@@ -72,6 +73,7 @@ app.UseExceptionHandler(exceptionApp =>
 });
 
 app.MapGetAsyncEndpoints();
+app.MapGetStreamAsyncEndpoints();
 app.MapGetByteArrayAsyncEndpoints();
 app.MapGetStringAsyncEndpoints();
 app.MapPostAsyncEndpoints();

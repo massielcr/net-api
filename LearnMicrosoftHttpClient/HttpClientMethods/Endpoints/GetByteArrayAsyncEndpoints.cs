@@ -28,8 +28,9 @@ namespace HttpClientMethods.Endpoints
 
                 string webRoot = webHostEnvironment.WebRootPath ?? Path.Combine(webHostEnvironment.ContentRootPath, "wwwroot");
                 string folderPath = Path.Combine(webRoot, "images");
+                string fileName = $"{username}_avatar.png";
 
-                bool isSaved = await fileService.SaveFileAsync(avatar.Data, folderPath, $"{username}_avatar.png", overwrite);
+                bool isSaved = await fileService.SaveFileAsync(avatar.Data, folderPath, fileName, overwrite);
 
                 if (!isSaved)
                 {
@@ -37,7 +38,7 @@ namespace HttpClientMethods.Endpoints
                 }
 
 
-                string imageUrl = $"{httpRequest.Scheme}://{httpRequest.Host}/images/{username}_avatar.png";
+                string imageUrl = $"{httpRequest.Scheme}://{httpRequest.Host}/images/{fileName}";
 
                 return Results.Ok(new GitHubAvatarResponseDto(imageUrl, avatar.ContentType, avatar.ContentLength));
 
@@ -65,15 +66,16 @@ namespace HttpClientMethods.Endpoints
 
                 string webRoot = webHostEnvironment.WebRootPath ?? Path.Combine(webHostEnvironment.ContentRootPath, "wwwroot");
                 string folderPath = Path.Combine(webRoot, "images");
+                string fileName = $"{username}_avatar.png";
 
-                bool isSaved = await fileService.SaveFileAsync(avatar.Data, folderPath, $"{username}_avatar.png", overwrite);
+                bool isSaved = await fileService.SaveFileAsync(avatar.Data, folderPath, fileName, overwrite);
 
                 if (!isSaved)
                 {
                     return Results.Problem("Image was fetched from GitHub, but saving it to local storage failed");
                 }
 
-                string imageUrl = $"{httpRequest.Scheme}://{httpRequest.Host}/images/{username}_avatar.png";
+                string imageUrl = $"{httpRequest.Scheme}://{httpRequest.Host}/images/{fileName}";
 
                 return Results.Ok(new GitHubAvatarResponseDto(imageUrl, avatar.ContentType, avatar.ContentLength));
             })

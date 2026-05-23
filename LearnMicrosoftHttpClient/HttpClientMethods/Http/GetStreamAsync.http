@@ -1,14 +1,11 @@
-@owner = dotnet
+@username = massielcr
 
+### GetStreamAsync(String)   ---    GetStreamAsync_GetRepositoryReadmeStringAsync
 
-### GetStringAsync(String)   ---    GetStringAsync_GetRepositoryReadmeStringAsync
-@repo1 = runtime
-
-GET {{HostAddress}}/getstringasyncapi/{{owner}}/repos/{{repo1}}/readmestring HTTP/2
+GET {{HostAddress}}/getstreamasyncapi/users/{{username}}/downloadavatarstring?overwrite=true HTTP/2
 Accept: application/json
 
-### GetStringAsync(Uri)      ---    GetStringAsync_GetRepositoryReadmeUriAsync
-@repo2 = aspnetcore
+### GetStreamAsync(Uri)      ---    GetStreamAsync_GetRepositoryReadmeUriAsync
 
-GET {{HostAddress}}/getstringasyncapi/{{owner}}/repos/{{repo2}}/readmeuri HTTP/2
+GET {{HostAddress}}/getstreamasyncapi/users/{{username}}/downloadavataruri?overwrite=true HTTP/2
 Accept: application/json
