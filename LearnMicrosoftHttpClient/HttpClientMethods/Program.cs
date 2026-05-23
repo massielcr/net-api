@@ -1,9 +1,23 @@
+using HttpClientMethods.Dtos;
 using HttpClientMethods.Endpoints;
 using HttpClientMethods.Helpers;
 using HttpClientMethods.Services;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateSlimBuilder(args);
+
+builder.Services.AddHttpClient("GitHub", client =>
+{
+    client.BaseAddress = new Uri("https://api.github.com");
+    client.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
+    client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
+
+    // Dynamically inject the token if it exists at startup
+    string? token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+    if (!string.IsNullOrEmpty(token))
+    {
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+    }
+});
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -57,11 +71,7 @@ app.UseExceptionHandler(exceptionApp =>
         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
         context.Response.ContentType = "application/json";
 
-        await context.Response.WriteAsJsonAsync(new
-        {
-            Status = 500,
-            Detail = "An unexpected server error occurred. Please try again later."
-        });
+        await context.Response.WriteAsJsonAsync(new ErrorResponse(500, "An unexpected server error occurred. Please try again later."));
     });
 });
 
@@ -69,9 +79,4 @@ app.UseExceptionHandler(exceptionApp =>
 app.Run();
 
 
-[JsonSerializable(typeof(string))]
-[JsonSerializable(typeof(IEnumerable<(string commitMessage, DateTime commitDate)>))]
-internal partial class AppJsonSerializerContext : JsonSerializerContext
-{
 
-}

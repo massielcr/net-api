@@ -15,19 +15,20 @@
 
                 string fullPath = Path.Combine(folderPath, fileName);
 
-                if (File.Exists(fullPath))
+                if (!overwrite && File.Exists(fullPath))
                 {
-                    if (overwrite)
-                    {
-                        File.Delete(fullPath);
-                    }
-                    else
-                    {
-                        return false; // File exists and overwrite not allowed
-                    }
+                    return false; // File exists and overwrite not allowed
                 }
 
-                await File.WriteAllBytesAsync(fullPath, data);
+                using var fileStream = new FileStream(
+                                            fullPath,
+                                            FileMode.Create,
+                                            FileAccess.Write,
+                                            FileShare.None,
+                                            bufferSize: 4096,
+                                            useAsync: true);
+
+                await fileStream.WriteAsync(data.AsMemory()).ConfigureAwait(false);
 
                 return true;
             }

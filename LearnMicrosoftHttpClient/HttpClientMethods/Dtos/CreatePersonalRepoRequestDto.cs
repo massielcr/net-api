@@ -2,7 +2,7 @@
 
 namespace HttpClientMethods.Dtos
 {
-    public class CreatePersonalRepoRequest
+    public class CreatePersonalRepoRequestDto
     {
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;

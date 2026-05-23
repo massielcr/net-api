@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace HttpClientMethods.Services
 {
-    public class GetAsyncEndpointsService(IHttpClientFactory clientFactory) : IGetAsyncEndpointsService
+    public class GetAsyncEndpointsService(IHttpClientFactory clientFactory, ILogger<GetAsyncEndpointsService> logger) : IGetAsyncEndpointsService
     {
         private const string BaseUrl = "https://api.github.com/";
         private readonly string? _githubToken = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
@@ -50,20 +50,20 @@ namespace HttpClientMethods.Services
             }
             catch (InvalidOperationException ex)
             {
-                Console.WriteLine($"The requestUri is not an absolute URI and BaseAddress isn't set.{ex.Message}");
+                logger.LogError($"The requestUri is not an absolute URI and BaseAddress isn't set.{ex.Message}");
             }
             catch (UriFormatException ex)
             {
-                Console.WriteLine($"The provided request URI is not valid relative or absolute URI: {ex.Message}");
+                logger.LogError($"The provided request URI is not valid relative or absolute URI: {ex.Message}");
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response: {ex.Message}");
-                Console.WriteLine($".NET Framework only: the request timed out. {ex.Message}");
+                logger.LogError($"The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response: {ex.Message}");
+                logger.LogError($".NET Framework only: the request timed out. {ex.Message}");
             }
             catch (OperationCanceledException ex)
             {
-                Console.WriteLine($".NET Core and .NET 5 and later only: The request failed due to timeout. {ex.Message}");                
+                logger.LogError($".NET Core and .NET 5 and later only: The request failed due to timeout. {ex.Message}");                
             }
 
             return result;
@@ -116,20 +116,20 @@ namespace HttpClientMethods.Services
             }
             catch (InvalidOperationException ex)
             {
-                Console.WriteLine("The requestUri is not an absolute URI and BaseAddress isn't set.");
+                logger.LogError("The requestUri is not an absolute URI and BaseAddress isn't set.");
             }
             catch (UriFormatException ex)
             {
-                Console.WriteLine("The provided request URI is not valid relative or absolute URI.");
+                logger.LogError("The provided request URI is not valid relative or absolute URI.");
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response.");
-                Console.WriteLine(".NET Framework only: the request timed out.");
+                logger.LogError("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response.");
+                logger.LogError(".NET Framework only: the request timed out.");
             }
             catch (OperationCanceledException ex)
             {
-                Console.WriteLine(".NET Core and .NET 5 and later only: The request failed due to timeout.");
+                logger.LogError(".NET Core and .NET 5 and later only: The request failed due to timeout.");
                 
             }
 
@@ -189,20 +189,20 @@ namespace HttpClientMethods.Services
             }
             catch (InvalidOperationException)
             {
-                Console.WriteLine("The requestUri is not an absolute URI and BaseAddress isn't set.");
+                logger.LogError("The requestUri is not an absolute URI and BaseAddress isn't set.");
             }
             catch (UriFormatException)
             {
-                Console.WriteLine("The provided request URI is not valid relative or absolute URI.");
+                logger.LogError("The provided request URI is not valid relative or absolute URI.");
             }
             catch (HttpRequestException)
             {
-                Console.WriteLine("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response.");
-                Console.WriteLine(".NET Framework only: the request timed out.");
+                logger.LogError("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response.");
+                logger.LogError(".NET Framework only: the request timed out.");
             }
             catch(OperationCanceledException)
             {
-                Console.WriteLine(".NET Core and .NET 5 and later only: The request failed due to timeout.");       
+                logger.LogError(".NET Core and .NET 5 and later only: The request failed due to timeout.");       
             }
 
             return null;
@@ -260,21 +260,21 @@ namespace HttpClientMethods.Services
             }
             catch (InvalidOperationException ex)
             {
-                Console.WriteLine("The requestUri is not an absolute URI and BaseAddress isn't set.");
+                logger.LogError("The requestUri is not an absolute URI and BaseAddress isn't set.");
             }
             catch (UriFormatException ex)
             {
-                Console.WriteLine("The provided request URI is not valid relative or absolute URI.");
+                logger.LogError("The provided request URI is not valid relative or absolute URI.");
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response. ");
-                Console.WriteLine(".NET Framework only: the request timed out.");                
+                logger.LogError("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response. ");
+                logger.LogError(".NET Framework only: the request timed out.");                
             }
             catch (OperationCanceledException ex)
             {
-                Console.WriteLine("The cancellation token was canceled. This exception is stored into the returned task.");
-                Console.WriteLine(".NET Core and .NET 5 and later only: The request failed due to timeout.");
+                logger.LogError("The cancellation token was canceled. This exception is stored into the returned task.");
+                logger.LogError(".NET Core and .NET 5 and later only: The request failed due to timeout.");
                 throw;
             }
 
@@ -322,24 +322,24 @@ namespace HttpClientMethods.Services
                 }
                 catch (InvalidOperationException ex)
                 {
-                    Console.WriteLine("The requestUri is not an absolute URI and BaseAddress isn't set.");
+                    logger.LogError("The requestUri is not an absolute URI and BaseAddress isn't set.");
                     shouldContinue = false;
                 }
                 catch (UriFormatException ex)
                 {
-                    Console.WriteLine("The provided request URI is not valid relative or absolute URI.");
+                    logger.LogError("The provided request URI is not valid relative or absolute URI.");
                     shouldContinue = false;
                 }
                 catch (HttpRequestException ex)
                 {
-                    Console.WriteLine("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response.");
-                    Console.WriteLine(".NET Framework only: the request timed out.");
+                    logger.LogError("The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response.");
+                    logger.LogError(".NET Framework only: the request timed out.");
                     shouldContinue = false;
                 }
                 catch (OperationCanceledException ex)
                 {
-                    Console.WriteLine("The cancellation token was canceled. This exception is stored into the returned task.");
-                    Console.WriteLine(".NET Core and .NET 5 and later only: The request failed due to timeout.");
+                    logger.LogError("The cancellation token was canceled. This exception is stored into the returned task.");
+                    logger.LogError(".NET Core and .NET 5 and later only: The request failed due to timeout.");
                     throw;
                 }
 
