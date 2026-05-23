@@ -1,12 +1,12 @@
 @username = massielcr
 
-### GetByteArrayAsync(String)   ---    GetByteArrayAsync_DownloadLogoStringAsync
+### GetByteArrayAsync(String)   ---    GetByteArrayAsync_DownloadAvatarStringAsync
 
-GET {{HostAddress}}/getbytearrayasyncapi/users/{{username}}/downloadlogostring?overwrite=true
+GET {{HostAddress}}/getbytearrayasyncapi/users/{{username}}/downloadavatarstring?overwrite=true
 Accept: application/json
 
-### GetByteArrayAsync(Uri)      ---    GetByteArrayAsync_DownloadLogoUriAsync    
+### GetByteArrayAsync(Uri)      ---    GetByteArrayAsync_DownloadAvatarUriAsync    
 
-GET {{HostAddress}}/getbytearrayasyncapi/users/{{username}}/downloadlogouri?overwrite=true
+GET {{HostAddress}}/getbytearrayasyncapi/users/{{username}}/downloadavataruri?overwrite=true
 Accept: application/json
 

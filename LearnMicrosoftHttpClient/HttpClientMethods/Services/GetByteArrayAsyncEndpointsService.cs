@@ -7,7 +7,7 @@ namespace HttpClientMethods.Services
     {
         private const string BaseUrl = "https://api.github.com";
 
-        public async Task<GitHubAvatar?> DownloadLogoStringAsync(string username)
+        public async Task<GitHubAvatar?> DownloadAvatarStringAsync(string username)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
 
@@ -62,7 +62,7 @@ namespace HttpClientMethods.Services
             return null;
         }
 
-        public async Task<GitHubAvatar?> DownloadLogoUriAsync(string username)
+        public async Task<GitHubAvatar?> DownloadAvatarUriAsync(string username)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
 
