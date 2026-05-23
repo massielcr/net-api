@@ -5,7 +5,7 @@ Accept: application/json
 
 ### GetAsync(String, CancellationToken)
 
-GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos?page=1&perPage=1&totalPages=1&cid=1 HTTP/2
+GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos?page=1&perPage=5&totalPages=5&cid=1 HTTP/2
 Accept: application/json
 
 ### GetAsync(String, HttpCompletionOption)

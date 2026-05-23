@@ -78,6 +78,7 @@ app.MapGetByteArrayAsyncEndpoints();
 app.MapGetStringAsyncEndpoints();
 app.MapPostAsyncEndpoints();
 app.MapSendAsyncEndpoints();
+app.MapCancellationEndpoints();
 
 
 

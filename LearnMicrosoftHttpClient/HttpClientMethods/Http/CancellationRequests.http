@@ -1,4 +1,4 @@
 ### GetAsync(String, CancellationToken) - CancellationToken
 
-POST {{HostAddress}}/cancel-work?cid=1
+GET {{HostAddress}}/cancellationapi/cancel?cid=1 HTTP/2
 Accept: application/json

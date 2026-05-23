@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace HttpClientMethods.Endpoints
+namespace HttpClientMethods.Helpers
 {
     public class CancellationManager
     {

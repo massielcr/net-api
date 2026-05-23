@@ -1,4 +1,5 @@
-﻿using HttpClientMethods.Services;
+﻿using HttpClientMethods.Helpers;
+using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text.RegularExpressions;
@@ -25,7 +26,10 @@ namespace HttpClientMethods.Endpoints
                     return Results.Problem("An error ocurred");
                 }               
 
-            }).WithName("GetRepositoriesCountAsync");
+            })
+            .WithName("GetRepositoriesCountAsync")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status500InternalServerError);
 
 
             app.MapGet("/getasyncapi/orgs/{orgname}/repos", async ([FromRoute] string orgName, 
@@ -52,7 +56,9 @@ namespace HttpClientMethods.Endpoints
                     cancellationManager.Cancel(connectionId);
                 }                
 
-            }).WithName("GetRepositoriesAsync");
+            }).WithName("GetRepositoriesAsync")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status500InternalServerError);
 
 
             app.MapGet("/getasyncapi/orgs/{orgname}/repos/stream", async () =>
@@ -60,7 +66,9 @@ namespace HttpClientMethods.Endpoints
                 await Task.Delay(1000);
                 return Results.Ok("Hello world");
 
-            }).WithName("GetRepositoriesStreamAsync");
+            }).WithName("GetRepositoriesStreamAsync")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status500InternalServerError);
 
 
             app.MapGet("/getasyncapi/orgs/{orgname}/repos/stream/cancel", async () =>
@@ -68,7 +76,9 @@ namespace HttpClientMethods.Endpoints
                 await Task.Delay(1000);
                 return Results.Ok("Hello world");
 
-            }).WithName("GetRepositoriesStreamCancelAsync");
+            }).WithName("GetRepositoriesStreamCancelAsync")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status500InternalServerError);
 
 
             #endregion
@@ -187,14 +197,6 @@ namespace HttpClientMethods.Endpoints
 
 
             #endregion
-
-
-            app.MapPost("/cancel-work", ([FromQuery(Name ="cid")] string connectionId, [FromServices] CancellationManager cancellationManager) => {
-
-                cancellationManager.Cancel(connectionId);
-
-                return Results.Ok($"Work for {connectionId} requested to stop.");
-            });
         }
     }
 }
