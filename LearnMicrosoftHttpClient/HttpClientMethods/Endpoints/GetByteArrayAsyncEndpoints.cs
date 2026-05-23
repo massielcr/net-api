@@ -14,7 +14,7 @@ namespace HttpClientMethods.Endpoints
                                                                                            [FromQuery] bool overwrite,
                                                                                            [FromServices] IGetByteArrayAsyncEndpointsService getByteArrayAsyncEndpointsService,
                                                                                            [FromServices] IFileService fileService,
-                                                                                           [FromServices] IWebHostEnvironment env,
+                                                                                           [FromServices] IWebHostEnvironment webHostEnvironment,
                                                                                            HttpRequest httpRequest) =>
             {
 
@@ -26,7 +26,7 @@ namespace HttpClientMethods.Endpoints
                 }
 
 
-                string webRoot = env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot");
+                string webRoot = webHostEnvironment.WebRootPath ?? Path.Combine(webHostEnvironment.ContentRootPath, "wwwroot");
                 string folderPath = Path.Combine(webRoot, "images");
 
                 bool isSaved = await fileService.SaveFileAsync(avatar!.Data!, folderPath, $"{username}_logo.png", overwrite);
@@ -52,7 +52,7 @@ namespace HttpClientMethods.Endpoints
                                                                                         [FromQuery] bool overwrite,
                                                                                         [FromServices] IGetByteArrayAsyncEndpointsService getByteArrayAsyncEndpointsService,
                                                                                         [FromServices] IFileService fileService,
-                                                                                        [FromServices] IWebHostEnvironment env,
+                                                                                        [FromServices] IWebHostEnvironment webHostEnvironment,
                                                                                         HttpRequest httpRequest) =>
             {
 
@@ -63,7 +63,7 @@ namespace HttpClientMethods.Endpoints
                     return Results.NotFound($"Could not retrieve image data from GitHub for user '{username}'.");
                 }
 
-                string webRoot = env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot");
+                string webRoot = webHostEnvironment.WebRootPath ?? Path.Combine(webHostEnvironment.ContentRootPath, "wwwroot");
                 string folderPath = Path.Combine(webRoot, "images");
 
                 bool isSaved = await fileService.SaveFileAsync(avatar!.Data!, folderPath, $"{username}_logo.png", overwrite);
