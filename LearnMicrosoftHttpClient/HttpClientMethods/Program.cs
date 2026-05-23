@@ -8,7 +8,7 @@ var builder = WebApplication.CreateSlimBuilder(args);
 builder.Services.AddHttpClient("GitHub", client =>
 {
     client.BaseAddress = new Uri("https://api.github.com");
-    client.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3.raw");
+    client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
     client.DefaultRequestHeaders.Add("User-Agent", "MyHttpClientMethodsTestService");
 
     // Dynamically inject the token if it exists at startup

@@ -8,41 +8,30 @@ namespace HttpClientMethods.Services
 {
     public class GetAsyncEndpointsService(IHttpClientFactory clientFactory, ILogger<GetAsyncEndpointsService> logger) : IGetAsyncEndpointsService
     {
-        private const string BaseUrl = "https://api.github.com/";
-        private readonly string? _githubToken = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+        private static readonly Regex _cleanMessageRegex = new(@"[^a-zA-Z0-9\s]", RegexOptions.Compiled);
 
-        private static readonly Regex _cleanMessageRegex = new Regex(@"[^a-zA-Z0-9\s]", RegexOptions.Compiled);
-
-        #region relativeUri
+        #region String
 
         //GetAsync(String)
         public async Task<int?> GetRepositoriesCountAsync(string orgName)
         {
             int? result = null;
 
-            HttpClient client = clientFactory.CreateClient();
-
-            client.BaseAddress = new Uri(BaseUrl);
-
-            client.DefaultRequestHeaders.Clear();
-           
-            client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-
             string relativeUri = $"orgs/{orgName}";
 
             try
             {
+                HttpClient client = clientFactory.CreateClient("GitHub");
+
                 using HttpResponseMessage response = await client.GetAsync(relativeUri).ConfigureAwait(false);
 
                 response.EnsureSuccessStatusCode();
 
-                using Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                using Stream responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
-                JsonElement? organization = await JsonSerializer.DeserializeAsync<JsonElement>(stream).ConfigureAwait(false);
+                JsonElement? responseJson = await JsonSerializer.DeserializeAsync<JsonElement>(responseStream).ConfigureAwait(false);
 
-                if (organization.HasValue && organization.Value.TryGetProperty("public_repos", out var count))
+                if (responseJson.HasValue && responseJson.Value.TryGetProperty("public_repos", out var count))
                 {
                     result = count.GetInt32();
                     return result;
@@ -73,45 +62,37 @@ namespace HttpClientMethods.Services
         //GetAsync(String, CancellationToken)
         public async Task<IEnumerable<string>> GetRepositoriesAsync(string orgName, int page, int perPage, int totalPages, CancellationToken cancellationToken)
         {
-            HttpClient client = clientFactory.CreateClient();
-
-            client.BaseAddress = new Uri(BaseUrl);
-
-            client.DefaultRequestHeaders.Clear();
-
-            client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-
             List<string> result = [];
+
+            string? relativeUri = $"orgs/{orgName}/repos?page={page}&per_page={perPage}";
 
             try
             {
-                int counter = 0;
+                int counterPages = 0;
                 bool shouldContinue = true;
 
                 while (shouldContinue)
                 {
-                    string? relativeUri = $"orgs/{orgName}/repos";
+                    HttpClient client = clientFactory.CreateClient("GitHub");
 
                     using HttpResponseMessage response = await client.GetAsync(relativeUri, cancellationToken).ConfigureAwait(false);
 
                     response.EnsureSuccessStatusCode();
 
-                    using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                    using Stream responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 
-                    IEnumerable<JsonElement>? repositories = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    IEnumerable<JsonElement>? repositories = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(responseStream, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     if (repositories != null && repositories.Any())
                     {
                         result.AddRange(repositories.Select(repo => repo.GetProperty("name").GetString() ?? string.Empty).ToList());
                     }
 
-                    counter++;
+                    counterPages++;
 
                     relativeUri = GetNextPageUrl(response.Headers);
 
-                    shouldContinue = counter < totalPages && !string.IsNullOrEmpty(relativeUri);
+                    shouldContinue = counterPages < totalPages && !string.IsNullOrEmpty(relativeUri);
                 }
             }
             catch (InvalidOperationException ex)
@@ -160,16 +141,11 @@ namespace HttpClientMethods.Services
         //GetAsync(Uri)
         public async Task<int?> GetCommitsCountAsync(string owner, string repo)
         {
-            HttpClient client = clientFactory.CreateClient();
-
-            client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_githubToken}");
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-
             try
             {
-                Uri uri = new($"{BaseUrl}repos/{owner}/{repo}/stats/participation");
+                Uri uri = new($"repos/{owner}/{repo}/stats/participation", UriKind.Relative);
+
+                HttpClient client = clientFactory.CreateClient("GitHub");
 
                 using HttpResponseMessage response = await client.GetAsync(uri);
 
@@ -212,23 +188,17 @@ namespace HttpClientMethods.Services
         //GetAsync(Uri, CancellationToken)
         public async Task<IEnumerable<(string commitMessage, DateTime commitDate)>> GetCommitsAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, CancellationToken cancellationToken)
         {
-            HttpClient client = clientFactory.CreateClient();
-
-            client.DefaultRequestHeaders.Clear();
-
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("MyTestService");
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-
             List<(string commitMessage, DateTime commitDate)> result = [];
 
             try
             {
+                HttpClient client = clientFactory.CreateClient("GitHub");
+
                 while (page <= totalPages)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    Uri uri = new($"{BaseUrl}repos/{orgName}/{repositoryName}/commits?page={page}&per_page={perPage}");
+                    Uri uri = new($"repos/{orgName}/{repositoryName}/commits?page={page}&per_page={perPage}", UriKind.Relative);
 
                     using HttpResponseMessage response = await client.GetAsync(uri, cancellationToken);
 
@@ -293,14 +263,6 @@ namespace HttpClientMethods.Services
         //GetAsync(Uri, HttpCompletionOption, CancellationToken)
         public async IAsyncEnumerable<(string commitMessage, DateTime commitDate)> GetCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            HttpClient client = clientFactory.CreateClient();
-
-            client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _githubToken);
-
-
             while (page <= totalPages)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -311,7 +273,9 @@ namespace HttpClientMethods.Services
 
                 try
                 {
-                    Uri uri = new($"{BaseUrl}repos/{orgName}/{repositoryName}/commits?page={page}&per_page={perPage}");
+                    Uri uri = new($"repos/{orgName}/{repositoryName}/commits?page={page}&per_page={perPage}", UriKind.Relative);
+
+                    HttpClient client = clientFactory.CreateClient("GitHub");
 
                     response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
 
@@ -376,7 +340,7 @@ namespace HttpClientMethods.Services
         #endregion
 
 
-        private string? GetNextPageUrl(HttpResponseHeaders headers)
+        private static string? GetNextPageUrl(HttpResponseHeaders headers)
         {
             if (!headers.TryGetValues("Link", out var values)) return null;
 

@@ -11,8 +11,8 @@ namespace HttpClientMethods.Endpoints
         {
             #region Repositories
 
-            app.MapGet("/getasync/orgs/{orgname}/repos/count", async ([FromRoute] string orgname,
-                                                             [FromServices] IGetAsyncEndpointsService getEndpointsService) =>
+            app.MapGet("/getasyncapi/orgs/{orgname}/repos/count", async ([FromRoute] string orgname,
+                                                                         [FromServices] IGetAsyncEndpointsService getEndpointsService) =>
             {
                 int? reposCount = await getEndpointsService.GetRepositoriesCountAsync(orgname);
 
@@ -28,7 +28,7 @@ namespace HttpClientMethods.Endpoints
             }).WithName("GetRepositoriesCountAsync");
 
 
-            app.MapGet("/getasync/orgs/{orgname}/repos", async ([FromRoute] string orgName, 
+            app.MapGet("/getasyncapi/orgs/{orgname}/repos", async ([FromRoute] string orgName, 
                                                        [FromQuery] int page, [FromQuery] int perPage, [FromQuery] int totalPages, [FromQuery(Name = "cid")] string connectionId, 
                                                        [FromServices] IGetAsyncEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager) =>
             {
@@ -55,7 +55,7 @@ namespace HttpClientMethods.Endpoints
             }).WithName("GetRepositoriesAsync");
 
 
-            app.MapGet("/getasync/orgs/{orgname}/repos/stream", async () =>
+            app.MapGet("/getasyncapi/orgs/{orgname}/repos/stream", async () =>
             {
                 await Task.Delay(1000);
                 return Results.Ok("Hello world");
@@ -63,7 +63,7 @@ namespace HttpClientMethods.Endpoints
             }).WithName("GetRepositoriesStreamAsync");
 
 
-            app.MapGet("/getasync/orgs/{orgname}/repos/stream/cancel", async () =>
+            app.MapGet("/getasyncapi/orgs/{orgname}/repos/stream/cancel", async () =>
             {
                 await Task.Delay(1000);
                 return Results.Ok("Hello world");
@@ -76,7 +76,7 @@ namespace HttpClientMethods.Endpoints
 
             #region Commits
 
-            app.MapGet("/getasync/repos/{owner}/{repo}/commits/count", async ([FromRoute] string owner, [FromRoute] string repo,
+            app.MapGet("/getasyncapi/repos/{owner}/{repo}/commits/count", async ([FromRoute] string owner, [FromRoute] string repo,
                                                                      [FromServices] IGetAsyncEndpointsService getEndpointsService) =>
             {
                 int? commitsCount = await getEndpointsService.GetCommitsCountAsync(owner, repo);
@@ -93,7 +93,7 @@ namespace HttpClientMethods.Endpoints
             }).WithName("GetAsync_GetCommitsCountAsync");
 
 
-            app.MapGet("/getasync/orgs/{orgname}/repos/{reponame}/commits", async ([FromRoute] string orgname, [FromRoute] string reponame,
+            app.MapGet("/getasyncapi/orgs/{orgname}/repos/{reponame}/commits", async ([FromRoute] string orgname, [FromRoute] string reponame,
                                                                                    [FromQuery(Name = "page")] int page, [FromQuery(Name = "perPage")] int perPage, [FromQuery(Name = "totalPages")] int totalPages,
                                                                                    [FromQuery(Name = "cid")] string connectionId,
                                                                                    [FromServices] IGetAsyncEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager) =>
@@ -135,7 +135,7 @@ namespace HttpClientMethods.Endpoints
             }).WithName("GetAsync_GetCommitsAsync");
 
 
-            app.MapGet("/getasync/orgs/{orgname}/repos/{reponame}/commits/streams", async ([FromRoute] string orgname, [FromRoute] string reponame,
+            app.MapGet("/getasyncapi/orgs/{orgname}/repos/{reponame}/commits/streams", async ([FromRoute] string orgname, [FromRoute] string reponame,
                                                                                            [FromQuery(Name = "page")] int page, [FromQuery(Name = "perPage")] int perPage, [FromQuery(Name = "totalPages")] int totalPages,
                                                                                            [FromServices] IGetAsyncEndpointsService getEndpointsService, HttpContext context) =>
             {
@@ -143,7 +143,7 @@ namespace HttpClientMethods.Endpoints
             }).WithName("GetAsync_GetCommitsStreamAsync");
 
 
-            app.MapGet("/getasync/orgs/{orgname}/repos/{reponame}/commits/streams/cancel", async ([FromRoute] string orgname, [FromRoute] string reponame,
+            app.MapGet("/getasyncapi/orgs/{orgname}/repos/{reponame}/commits/streams/cancel", async ([FromRoute] string orgname, [FromRoute] string reponame,
                                                                                                  [FromQuery(Name = "page")] int page, [FromQuery(Name = "perPage")] int perPage, [FromQuery(Name = "totalPages")] int totalPages,
                                                                                                  [FromQuery(Name = "cid")] string connectionId,
                                                                                                  [FromServices] IGetAsyncEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager, HttpContext context) =>
@@ -184,9 +184,6 @@ namespace HttpClientMethods.Endpoints
                 return Results.Empty;
 
             }).WithName("GetAsync_GetCommitsStreamCancelAsync");
-
-
-            
 
 
             #endregion

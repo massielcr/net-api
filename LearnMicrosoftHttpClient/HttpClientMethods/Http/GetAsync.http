@@ -1,46 +1,43 @@
 ### GetAsync(String)
 
-GET {{HostAddress}}/getasync/orgs/dotnet/repos/count
+GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos/count HTTP/2
 Accept: application/json
 
 ### GetAsync(String, CancellationToken)
 
-GET {{HostAddress}}/getasync/orgs/dotnet/repos?page=1&perPage=1&totalPages=1&cid=1
+GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos?page=1&perPage=1&totalPages=1&cid=1 HTTP/2
 Accept: application/json
 
 ### GetAsync(String, HttpCompletionOption)
 
-GET {{HostAddress}}/getasync/orgs/dotnet/repos/stream?page=1&perPage=10&totalPages=2
+GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos/stream?page=1&perPage=10&totalPages=2 HTTP/2
 Accept: application/json
 
 ### GetAsync(String, HttpCompletionOption, CancellationToken)
 
-GET {{HostAddress}}/getasync/orgs/dotnet/repos/stream/cancel?page=1&perPage=10&totalPages=1&cid=1
+GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos/stream/cancel?page=1&perPage=10&totalPages=1&cid=1 HTTP/2
 Accept: application/json
-
-
-
 
 
 
 ### GetAsync_GetCommitsCountAsync               ----    GetAsync(Uri)
 
-GET {{HostAddress}}/getasync/repos/dotnet/efcore/commits/count
+GET {{HostAddress}}/getasyncapi/repos/dotnet/efcore/commits/count HTTP/2
 Accept: application/json
 
 ### GetAsync_GetCommitsAsync                    ----    GetAsync(Uri, CancellationToken)
 
-GET {{HostAddress}}/getasync/orgs/dotnet/repos/efcore/commits?page=1&perPage=10&totalPages=1&cid=1
+GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos/efcore/commits?page=1&perPage=10&totalPages=1&cid=1 HTTP/2
 Accept: application/json
 
 
 ### GetAsync_GetCommitsStreamAsync              ----    GetAsync(Uri, HttpCompletionOption)
 
-GET {{HostAddress}}/getasync/orgs/dotnet/repos/efcore/commits/streams?page=1&perPage=10&totalPages=1
+GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos/efcore/commits/streams?page=1&perPage=10&totalPages=1 HTTP/2
 Accept: application/json
 
 
 ### GetAsync_GetCommitsStreamCancelAsync        ----    GetAsync(Uri, HttpCompletionOption, CancellationToken)
 
-GET {{HostAddress}}/getasync/orgs/dotnet/repos/efcore/commits/streams/cancel?page=1&perPage=10&totalPages=1&cid=1
+GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos/efcore/commits/streams/cancel?page=1&perPage=10&totalPages=1&cid=1 HTTP/2
 Accept: application/json
