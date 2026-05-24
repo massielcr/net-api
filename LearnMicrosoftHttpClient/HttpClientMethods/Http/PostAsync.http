@@ -1,4 +1,46 @@
-### Create a Personal Repository via GitHub REST API
+### PostAsync(String, HttpContent)                                    ----      Create a Personal Repository via GitHub REST API
+
+POST {{HostAddress}}/postasync/repos
+Accept: application/vnd.github+json
+User-Agent: MyTestService
+Content-Type: application/json
+{
+  "name": "my-test-http-repo",
+  "description": "Created using an .http file!",
+  "private": false,
+  "auto_init": true,
+  "has_downloads": true
+}
+
+### PostAsync(String, HttpContent, CancellationToken)                 ----      Create a Personal Repository via GitHub REST API
+
+POST {{HostAddress}}/postasync/repos
+Accept: application/vnd.github+json
+User-Agent: MyTestService
+Content-Type: application/json
+{
+  "name": "my-test-http-repo",
+  "description": "Created using an .http file!",
+  "private": true,
+  "auto_init": true
+}
+
+
+### PostAsync(Uri, HttpContent)                                       ----      Create a Personal Repository via GitHub REST API
+
+POST {{HostAddress}}/postasync/repos
+Accept: application/vnd.github+json
+User-Agent: MyTestService
+Content-Type: application/json
+{
+  "name": "my-test-http-repo",
+  "description": "Created using an .http file!",
+  "private": true,
+  "auto_init": true
+}
+
+
+### PostAsync(Uri, HttpContent, CancellationToken)                    ----      Create a Personal Repository via GitHub REST API
 
 POST {{HostAddress}}/postasync/repos
 Accept: application/vnd.github+json

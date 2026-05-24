@@ -2,6 +2,6 @@
 {
     public interface IPostAsyncEndpointsService
     {
-        public Task<bool> CreatePersonalRepoAsync(string repoName, string description, bool isPrivate, bool initialCommit);
+        public Task<bool> CreatePersonalRepositoryAsync(string name, string description, bool isPrivate, bool initialREADME, bool hasDownloads);
     }
 }

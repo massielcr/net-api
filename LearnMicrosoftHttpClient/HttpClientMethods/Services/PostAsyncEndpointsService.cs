@@ -1,40 +1,49 @@
-﻿using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace HttpClientMethods.Services
 {
-    public class PostAsyncEndpointsService : IPostAsyncEndpointsService
-    {
-        private const string BaseUrl = "https://api.github.com/";
-        private readonly string? _githubToken = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
-
-        private readonly static HttpClient _httpClient = new();
-
-        
-        public async Task<bool> CreatePersonalRepoAsync(string repoName, string description, bool isPrivate, bool initialCommit)
+    public class PostAsyncEndpointsService(IHttpClientFactory clientFactory, ILogger<PostAsyncEndpointsService> logger) : IPostAsyncEndpointsService
+    {       
+        public async Task<bool> CreatePersonalRepositoryAsync(string name, string description, bool isPrivate, bool initialREADME, bool hasDownloads)
         {
-            _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "MyTestService");
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_githubToken}");
+            string uri = $"user/repos";
 
-            Uri uri = new($"{BaseUrl}user/repos");
-
-            var repoSetup = new
+            try
             {
-                name = repoName,
-                description,
-                @private = isPrivate,
-                auto_init = initialCommit
-            };
+                HttpClient httpClient = clientFactory.CreateClient("GitHub");
 
-            string repoSetupJason = JsonSerializer.Serialize(repoSetup);
+                var repoSetup = new
+                {
+                    name,
+                    description,
+                    @private = isPrivate,
+                    auto_init = initialREADME,
+                    has_downloads = hasDownloads
+                };
 
-            using StringContent content = new(repoSetupJason, Encoding.UTF8, "application/json");
+                using JsonContent content = JsonContent.Create(repoSetup, options: JsonSerializerOptions.Web);
 
-            HttpResponseMessage response = await _httpClient.PostAsync(uri, content);
+                HttpResponseMessage response = await httpClient.PostAsync(uri, content);
 
-            return response.IsSuccessStatusCode;
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    logger.LogWarning("GitHub API returned status {StatusCode}. Details: {Details}", response.StatusCode, errorBody);
+                    return false;
+                }
+
+                return true;
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, "An error occurred while sending the HTTP request to GitHub. This could be due to network issues, an invalid URL, or GitHub being unavailable.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An unexpected error occurred while trying to create a repository.");
+            }
+
+            return false;            
         }
     }
 }
