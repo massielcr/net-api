@@ -408,7 +408,7 @@ namespace HttpClientMethods.Services
 
 
         //GetAsync(Uri, HttpCompletionOption, CancellationToken)
-        public async IAsyncEnumerable<(string commitMessage, DateTime commitDate)> GetCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<GitHubCommitDto> GetCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             HttpClient client = clientFactory.CreateClient("GitHub");
 
@@ -471,7 +471,7 @@ namespace HttpClientMethods.Services
                         string message = commit.GetProperty("commit").GetProperty("message").GetString() ?? string.Empty;
                         DateTime commitDate = commit.GetProperty("commit").GetProperty("committer").GetProperty("date").GetDateTime();
 
-                        yield return (message, commitDate);                        
+                        yield return new GitHubCommitDto(message, commitDate);
                     }                    
                 }
 

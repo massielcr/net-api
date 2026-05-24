@@ -225,13 +225,13 @@ namespace HttpClientMethods.Endpoints
 
                 try
                 {
-                    IAsyncEnumerable<(string commitMessage, DateTime commitDate)> commitsStream = getEndpointsService.GetCommitsStreamAsync(orgname, reponame, page, perPage, totalPages, token);
+                    IAsyncEnumerable<GitHubCommitDto> commitsStream = getEndpointsService.GetCommitsStreamAsync(orgname, reponame, page, perPage, totalPages, token);
 
                     await foreach (var commit in commitsStream.WithCancellation(token))
                     {
                         count++;
 
-                        string result = $"{commit.commitDate}-{commit.commitMessage}";
+                        string result = $"{commit.CommitDate}-{commit.CommitMessage}";
 
                         await context.Response.WriteAsync($"{result}\n", token);
 

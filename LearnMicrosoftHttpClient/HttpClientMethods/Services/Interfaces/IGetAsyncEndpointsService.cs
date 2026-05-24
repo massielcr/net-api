@@ -35,7 +35,7 @@ namespace HttpClientMethods.Services
         Task<byte[]?> GetRepositoryArchiveAsync(string owner, string repo);
 
         //GetAsync(Uri, HttpCompletionOption, CancellationToken)
-        IAsyncEnumerable<(string commitMessage, DateTime commitDate)> GetCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, CancellationToken cancellationToken);
+        IAsyncEnumerable<GitHubCommitDto> GetCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, CancellationToken cancellationToken);
 
         #endregion
     }
