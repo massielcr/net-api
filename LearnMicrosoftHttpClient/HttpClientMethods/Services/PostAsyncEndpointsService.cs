@@ -244,7 +244,9 @@ namespace HttpClientMethods.Services
                     content = base64Image
                 };
 
-                using HttpResponseMessage response = await httpClient.PutAsJsonAsync(assetUri, assetContent, cancellationToken);
+                JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
+                using HttpResponseMessage response = await httpClient.PutAsJsonAsync(assetUri, assetContent, jsonSerializerOptions, cancellationToken);
 
                 if (!response.IsSuccessStatusCode)
                 {
