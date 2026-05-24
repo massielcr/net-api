@@ -199,7 +199,7 @@ namespace HttpClientMethods.Services
                 }
                 catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
                 {
-                    logger.LogInformation("Repository stream cancelled for organization {OrgName}", orgName);
+                    logger.LogInformation(ex, "Repository stream cancelled for organization {OrgName}", orgName);
                     throw;
                 }
                 catch (InvalidOperationException ex)

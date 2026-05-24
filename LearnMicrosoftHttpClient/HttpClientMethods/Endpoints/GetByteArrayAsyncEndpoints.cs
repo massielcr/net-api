@@ -30,7 +30,7 @@ namespace HttpClientMethods.Endpoints
                 string folderPath = Path.Combine(webRoot, "images");
                 string fileName = $"{username}_avatar.png";
 
-                bool isSaved = await fileService.SaveFileAsync(avatar.Data, folderPath, fileName, overwrite);
+                bool isSaved = await fileService.SaveFileAsync(folderPath, fileName, avatar.Data, overwrite);
 
                 if (!isSaved)
                 {
@@ -68,7 +68,7 @@ namespace HttpClientMethods.Endpoints
                 string folderPath = Path.Combine(webRoot, "images");
                 string fileName = $"{username}_avatar.png";
 
-                bool isSaved = await fileService.SaveFileAsync(avatar.Data, folderPath, fileName, overwrite);
+                bool isSaved = await fileService.SaveFileAsync(folderPath, fileName, avatar.Data, overwrite);
 
                 if (!isSaved)
                 {

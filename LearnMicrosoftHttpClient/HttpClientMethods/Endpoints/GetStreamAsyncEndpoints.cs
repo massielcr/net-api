@@ -23,7 +23,7 @@ namespace HttpClientMethods.Endpoints
                 string folderPath = Path.Combine(webRoot, "images");
                 string fileName = $"{username}_avatar.png";
 
-                bool isSaved = await fileService.SaveFileAsync(avatarStream, folderPath, fileName, overwrite);
+                bool isSaved = await fileService.SaveFileAsync(folderPath, fileName, avatarStream, overwrite);
 
                 if (!isSaved) { return Results.Problem("Image was fetched from GitHub, but saving it to local storage failed"); }
 
@@ -50,7 +50,7 @@ namespace HttpClientMethods.Endpoints
                 string folderPath = Path.Combine(webRoot, "images");
                 string fileName = $"{username}_avatar.png";
 
-                bool isSaved = await fileService.SaveFileAsync(avatarStream, folderPath, fileName, overwrite);
+                bool isSaved = await fileService.SaveFileAsync(folderPath, fileName, avatarStream, overwrite);
 
                 if (!isSaved) { return Results.Problem("Image was fetched from GitHub, but saving it to local storage failed"); }
 

@@ -19,7 +19,7 @@
             return File.ReadAllBytesAsync(fullPath);
         }
 
-        public async Task<bool> SaveFileAsync(byte[] data, string folderPath, string fileName, bool overwrite = false)
+        public async Task<bool> SaveFileAsync(string folderPath, string fileName, byte[] data, bool overwrite = false)
         {
             try
             {
@@ -55,7 +55,7 @@
             }
         }
 
-        public async Task<bool> SaveFileAsync(Stream data, string folderPath, string fileName, bool overwrite = false)
+        public async Task<bool> SaveFileAsync(string folderPath, string fileName, Stream data, bool overwrite = false)
         {
             try
             {

@@ -52,7 +52,7 @@ namespace HttpClientMethods.Endpoints
 
                     return Results.StatusCode(StatusCodes.Status201Created);
                 }
-                catch(OperationCanceledException ex)
+                catch(OperationCanceledException)
                 {
                     return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
                 }
@@ -96,7 +96,7 @@ namespace HttpClientMethods.Endpoints
 
                     return Results.StatusCode(StatusCodes.Status201Created);
                 }
-                catch (OperationCanceledException ex)
+                catch (OperationCanceledException)
                 {
                     return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
                 }
