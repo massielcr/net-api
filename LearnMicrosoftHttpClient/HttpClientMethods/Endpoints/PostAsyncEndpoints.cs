@@ -1,4 +1,5 @@
 ﻿using HttpClientMethods.Dtos;
+using HttpClientMethods.Helpers;
 using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,9 +25,42 @@ namespace HttpClientMethods.Endpoints
                 return Results.StatusCode(StatusCodes.Status201Created);
 
             })
-            .WithName("PostAsync_CreateRepoAsync")
+            .WithName("PostAsync_CreatePersonalRepositoryAsync")
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status500InternalServerError);
+
+            app.MapPost("postasync/repos/{owner}/{repo}/issues", async ([FromRoute] string owner, [FromRoute] string repo,
+                                                                        [FromQuery] int count, [FromQuery(Name = "cid")] string connectionId,
+                                                                        [FromBody] CreatePersonalRepoIssueRequestDto issue,
+                                                                        [FromServices] IPostAsyncEndpointsService postAsyncEndpointsService,
+                                                                        [FromServices] CancellationManager cancellationManager) =>
+            {
+
+                if (string.IsNullOrWhiteSpace(issue.Title))
+                {
+                    return Results.BadRequest(new { error = "Issue title cannot be empty." });
+                }
+
+                CancellationToken cancellationToken = cancellationManager.GetToken(connectionId, 30);
+
+                try
+                {
+                    bool success = await postAsyncEndpointsService.CreatePersonalRepositoryIssuesAsync(owner, repo, issue.Title, issue.Body, count, cancellationToken);
+
+                    if (!success) { return Results.InternalServerError(new { error = "Could not create the issue." }); }
+
+                    return Results.StatusCode(StatusCodes.Status201Created);
+                }
+                catch(OperationCanceledException ex)
+                {
+                    return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
+                }
+            })
+            .WithName("PostAsync_CreatePersonalRepositoryIssuesAsync")
+            .Produces(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status499ClientClosedRequest)
             .Produces(StatusCodes.Status500InternalServerError);
         }
     }

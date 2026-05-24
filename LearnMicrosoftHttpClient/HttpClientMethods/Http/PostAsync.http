@@ -1,8 +1,11 @@
+@owner = massielcr
+@repo = my-test-http-repo
+
+
 ### PostAsync(String, HttpContent)                                    ----      Create a Personal Repository via GitHub REST API
 
-POST {{HostAddress}}/postasync/repos
-Accept: application/vnd.github+json
-User-Agent: MyTestService
+POST {{HostAddress}}/postasync/repos  HTTP/2
+Accept: application/json
 Content-Type: application/json
 {
   "name": "my-test-http-repo",
@@ -12,17 +15,14 @@ Content-Type: application/json
   "has_downloads": true
 }
 
-### PostAsync(String, HttpContent, CancellationToken)                 ----      Create a Personal Repository via GitHub REST API
+### PostAsync(String, HttpContent, CancellationToken)                 ----      Create Issues in Personal Repository via GitHub REST API
 
-POST {{HostAddress}}/postasync/repos
-Accept: application/vnd.github+json
-User-Agent: MyTestService
+POST {{HostAddress}}/postasync/repos/{{owner}}/{{repo}}/issues?count=1&cid=1  HTTP/2
+Accept: application/json
 Content-Type: application/json
 {
-  "name": "my-test-http-repo",
-  "description": "Created using an .http file!",
-  "private": true,
-  "auto_init": true
+  "title": "Found a bug",
+  "body": "I'm having a problem with this."
 }
 
 
