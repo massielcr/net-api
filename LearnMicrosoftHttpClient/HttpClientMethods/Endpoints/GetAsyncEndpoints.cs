@@ -3,7 +3,6 @@ using HttpClientMethods.Helpers;
 using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace HttpClientMethods.Endpoints

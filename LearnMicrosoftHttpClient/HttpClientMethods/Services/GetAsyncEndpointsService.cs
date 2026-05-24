@@ -1,9 +1,7 @@
 ﻿using HttpClientMethods.Dtos;
-using System.Net;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace HttpClientMethods.Services
 {
