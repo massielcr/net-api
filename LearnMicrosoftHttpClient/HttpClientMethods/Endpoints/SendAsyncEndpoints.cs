@@ -36,7 +36,8 @@ namespace HttpClientMethods.Endpoints
                     cancellationManager.Cancel(connectionId);
                 }
 
-            }).WithName("SendAsync_GetRepositoriesAsync");
+            })
+             .WithName("SendAsync_GetRepositoriesAsync");
 
             app.MapGet("/sendasync/orgs/{orgname}/repos/parallel", async ([FromRoute] string orgName,
                                                                           [FromQuery] int page, [FromQuery] int perPage, [FromQuery] int totalPages, [FromQuery(Name = "cid")] string connectionId,
@@ -66,7 +67,8 @@ namespace HttpClientMethods.Endpoints
                     cancellationManager.Cancel(connectionId);
                 }
 
-            }).WithName("SendAsync_GetRepositoriesParallelAsync");
+            })
+             .WithName("SendAsync_GetRepositoriesParallelAsync");
         }
     }
 }

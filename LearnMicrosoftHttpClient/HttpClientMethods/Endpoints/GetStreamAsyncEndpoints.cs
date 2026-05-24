@@ -15,7 +15,7 @@ namespace HttpClientMethods.Endpoints
                                                                                           [FromServices] IWebHostEnvironment webHostEnvironment,
                                                                                           HttpRequest httpRequest) =>
             {
-                Stream? avatarStream = await getStreamAsyncEndpointsService.DownloadAvatarStringAsync(username);
+                Stream? avatarStream = await getStreamAsyncEndpointsService.GetAvatarStringAsync(username);
 
                 if (avatarStream == null) { return Results.NotFound($"Could not retrieve image data from GitHub for user '{username}'."); }
 
@@ -42,7 +42,7 @@ namespace HttpClientMethods.Endpoints
                                                                                        [FromServices] IWebHostEnvironment webHostEnvironment,
                                                                                        HttpRequest httpRequest) =>
             {
-                Stream? avatarStream = await getStreamAsyncEndpointsService.DownloadAvatarUriAsync(username);
+                Stream? avatarStream = await getStreamAsyncEndpointsService.GetAvatarUriAsync(username);
 
                 if (avatarStream == null) { return Results.NotFound($"Could not retrieve image data from GitHub for user '{username}'."); }
 

@@ -29,7 +29,8 @@ namespace HttpClientMethods.Endpoints
                     return Results.Problem("An error ocurred");
                 }
 
-            }).WithName("PostAsync_CreateRepoAsync");
+            })
+            .WithName("PostAsync_CreateRepoAsync");
         }
     }
 }

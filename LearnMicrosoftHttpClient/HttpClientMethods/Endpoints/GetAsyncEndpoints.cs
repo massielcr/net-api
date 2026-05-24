@@ -68,7 +68,7 @@ namespace HttpClientMethods.Endpoints
             {
                 string contentType = httpRequest.Headers.Accept.FirstOrDefault()?.ToString() ?? "application/json";
 
-                string? readmeContent = await getEndpointsService.GetRepositoriesReadmeAsync(owner, repo, contentType);
+                string? readmeContent = await getEndpointsService.GetRepositoryReadmeAsync(owner, repo, contentType);
 
                 if (string.IsNullOrEmpty(readmeContent))
                 {
@@ -194,7 +194,7 @@ namespace HttpClientMethods.Endpoints
                                                                            [FromServices] IGetAsyncEndpointsService getEndpointsService,
                                                                            [FromServices] IFileService fileService) =>
             {
-                byte[]? archiveBytes = await getEndpointsService.GetRepoArchiveAsync(owner, repo);
+                byte[]? archiveBytes = await getEndpointsService.GetRepositoryArchiveAsync(owner, repo);
 
                 if (archiveBytes == null || archiveBytes.Length == 0)
                 {

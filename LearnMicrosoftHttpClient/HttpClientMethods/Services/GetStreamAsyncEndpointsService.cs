@@ -4,7 +4,7 @@ namespace HttpClientMethods.Services
 {
     public class GetStreamAsyncEndpointsService(IHttpClientFactory httpClientFactory, ILogger<GetStreamAsyncEndpointsService> logger) : IGetStreamAsyncEndpointsService
     {
-        public async Task<Stream?> DownloadAvatarStringAsync(string username)
+        public async Task<Stream?> GetAvatarStringAsync(string username)
         {
             string relativeUri = $"users/{username}";
             string? avatarUrl = null;
@@ -54,7 +54,7 @@ namespace HttpClientMethods.Services
             return null;
         }
 
-        public async Task<Stream?> DownloadAvatarUriAsync(string username)
+        public async Task<Stream?> GetAvatarUriAsync(string username)
         {
             Uri uri = new($"users/{username}", UriKind.Relative);
             string? avatarUrl = null;

@@ -118,7 +118,7 @@ namespace HttpClientMethods.Services
 
 
         //GetAsync(String, HttpCompletionOption)
-        public async Task<string?> GetRepositoriesReadmeAsync(string owner, string repo, string contentType)
+        public async Task<string?> GetRepositoryReadmeAsync(string owner, string repo, string contentType)
         {
             try
             {
@@ -361,7 +361,7 @@ namespace HttpClientMethods.Services
 
         
         //GetAsync(Uri, HttpCompletionOption)
-        public async Task<byte[]?> GetRepoArchiveAsync(string owner, string repo)
+        public async Task<byte[]?> GetRepositoryArchiveAsync(string owner, string repo)
         {
             Uri uri = new($"repos/{owner}/{repo}/zipball/main", UriKind.Relative);
 

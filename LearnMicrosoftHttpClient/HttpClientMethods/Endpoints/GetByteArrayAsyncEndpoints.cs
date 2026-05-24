@@ -18,7 +18,7 @@ namespace HttpClientMethods.Endpoints
                                                                                            HttpRequest httpRequest) =>
             {
 
-                GitHubAvatar? avatar = await getByteArrayAsyncEndpointsService.DownloadAvatarStringAsync(username);
+                GitHubAvatar? avatar = await getByteArrayAsyncEndpointsService.GetAvatarStringAsync(username);
 
                 if (avatar == null || avatar.Data == null || avatar.ContentLength == 0)
                 {
@@ -57,7 +57,7 @@ namespace HttpClientMethods.Endpoints
                                                                                         HttpRequest httpRequest) =>
             {
 
-                GitHubAvatar? avatar = await getByteArrayAsyncEndpointsService.DownloadAvatarUriAsync(username);
+                GitHubAvatar? avatar = await getByteArrayAsyncEndpointsService.GetAvatarUriAsync(username);
 
                 if (avatar == null || avatar.Data == null || avatar.ContentLength == 0)
                 {

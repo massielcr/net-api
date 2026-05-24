@@ -4,7 +4,7 @@ namespace HttpClientMethods.Services
 {
     public interface IGetByteArrayAsyncEndpointsService
     {
-        public Task<GitHubAvatar?> DownloadAvatarStringAsync(string username);
-        public Task<GitHubAvatar?> DownloadAvatarUriAsync(string username);
+        public Task<GitHubAvatar?> GetAvatarStringAsync(string username);
+        public Task<GitHubAvatar?> GetAvatarUriAsync(string username);
     }
 }

@@ -2,7 +2,7 @@
 {
     public interface IGetStreamAsyncEndpointsService
     {
-        public Task<Stream?> DownloadAvatarStringAsync(string username);
-        public Task<Stream?> DownloadAvatarUriAsync(string username);
+        public Task<Stream?> GetAvatarStringAsync(string username);
+        public Task<Stream?> GetAvatarUriAsync(string username);
     }
 }
