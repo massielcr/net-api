@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using HttpClientMethods.Dtos;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -173,11 +174,77 @@ namespace HttpClientMethods.Services
 
 
         //GetAsync(String, HttpCompletionOption, CancellationToken)
-        public async IAsyncEnumerable<string> GetRepositoriesStreamAsync(string orgName, int page, int perPage, int totalPages, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<GitHubRepositoryDto> GetRepositoriesStreamAsync(string orgName, int perPage, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            string? relativeUri = $"orgs/{orgName}/repos?per_page={perPage}";
+
+            HttpClient httpClient = clientFactory.CreateClient("GitHub");
+
+            JsonSerializerOptions jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
+
+            bool shouldContinue = true;
+
+            while (shouldContinue)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                HttpResponseMessage? response = null;
+
+                try
+                {
+                    response = await httpClient.GetAsync(relativeUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        logger.LogError("Failed to fetch repositories for organization {OrgName}. Status code: {StatusCode}", orgName, response.StatusCode);
+                        response.Dispose();
+                        yield break;
+                    }
+                }
+                catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+                {
+                    logger.LogInformation("Repository stream cancelled for organization {OrgName}", orgName);
+                    throw;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    logger.LogError(ex, "The requestUri is not an absolute URI and BaseAddress isn't set while fetching repos for {OrgName}", orgName);
+                    yield break;
+                }
+                catch (UriFormatException ex)
+                {
+                    logger.LogError(ex, "The provided request URI is not valid relative or absolute URI while fetching repos for {OrgName}", orgName);
+                    yield break;
+                }
+                catch (HttpRequestException ex)
+                {
+                    logger.LogError(ex, "The request failed fetching repos for {OrgName}: {Message}", orgName, ex.Message);
+                    yield break;
+                }
+
+                using (response)
+                {
+                    using (Stream responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        IAsyncEnumerable<GitHubRepositoryDto?> repositories = JsonSerializer.DeserializeAsyncEnumerable<GitHubRepositoryDto>(responseStream, jsonSerializerOptions, cancellationToken);
+
+                        await foreach (GitHubRepositoryDto? repo in repositories.WithCancellation(cancellationToken))
+                        {
+                            if (repo != null)
+                            {
+                                yield return repo;
+                            }
+                        }
+                    }
+
+                    relativeUri = GetNextPageUrl(response.Headers);
+                    shouldContinue = !string.IsNullOrWhiteSpace(relativeUri);
+
+                }
+            }
+
             yield break;
         }
-
 
         #endregion
 
@@ -310,6 +377,8 @@ namespace HttpClientMethods.Services
         //GetAsync(Uri, HttpCompletionOption, CancellationToken)
         public async IAsyncEnumerable<(string commitMessage, DateTime commitDate)> GetCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            HttpClient client = clientFactory.CreateClient("GitHub");
+
             while (page <= totalPages)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -321,8 +390,6 @@ namespace HttpClientMethods.Services
                 try
                 {
                     Uri uri = new($"repos/{orgName}/{repositoryName}/commits?page={page}&per_page={perPage}", UriKind.Relative);
-
-                    HttpClient client = clientFactory.CreateClient("GitHub");
 
                     response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
 
@@ -401,7 +468,12 @@ namespace HttpClientMethods.Services
                 // Extract URL between < and >
                 int start = nextLink.IndexOf("<") + 1;
                 int end = nextLink.IndexOf(">");
-                return nextLink.Substring(start, end - start);
+
+                string nextUrl = nextLink.Substring(start, end - start);
+
+                nextUrl = nextUrl.Replace("https://api.github.com", "", StringComparison.OrdinalIgnoreCase);
+
+                return nextUrl;
             }
 
             return null;

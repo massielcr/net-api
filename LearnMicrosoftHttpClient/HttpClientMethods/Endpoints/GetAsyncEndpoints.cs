@@ -1,7 +1,9 @@
-﻿using HttpClientMethods.Helpers;
+﻿using HttpClientMethods.Dtos;
+using HttpClientMethods.Helpers;
 using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace HttpClientMethods.Endpoints
@@ -79,12 +81,35 @@ namespace HttpClientMethods.Endpoints
             .Produces(StatusCodes.Status500InternalServerError);
 
 
-            app.MapGet("/getasyncapi/orgs/{orgname}/repos/stream/cancel", async () =>
+            app.MapGet("/getasyncapi/orgs/{owner}/repos/streamcancel", ([FromRoute] string owner, 
+                                                                        [FromQuery] int perPage, [FromQuery(Name = "cid")] string connectionId,
+                                                                        [FromServices] IGetAsyncEndpointsService getEndpointsService,
+                                                                        [FromServices] CancellationManager cancellationManager,
+                                                                        HttpContext httpContext) =>
             {
-                await Task.Delay(1000);
-                return Results.Ok("Hello world");
+                CancellationToken cancellationToken = cancellationManager.GetToken(connectionId, 30);
 
-            }).WithName("GetAsync_GetRepositoriesStreamCancelAsync")
+                async IAsyncEnumerable<GitHubRepositoryDto?> StreamWithLifecycleAsync()
+                {
+                    IAsyncEnumerable<GitHubRepositoryDto?> reposStream = getEndpointsService.GetRepositoriesStreamAsync(owner, perPage, cancellationToken);
+
+                    try
+                    {
+                        await foreach (var repo in reposStream.WithCancellation(cancellationToken).ConfigureAwait(false))
+                        {
+                            yield return repo;
+                        }
+                    }
+                    finally
+                    {
+                        cancellationManager.Cancel(connectionId);
+                    }
+                }
+
+                return Results.Ok(StreamWithLifecycleAsync());
+
+            })
+            .WithName("GetAsync_GetRepositoriesStreamCancelAsync")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status500InternalServerError);
 
@@ -99,16 +124,17 @@ namespace HttpClientMethods.Endpoints
             {
                 int? commitsCount = await getEndpointsService.GetCommitsCountAsync(owner, repo);
 
-                if (commitsCount.HasValue)
-                {
-                    return Results.Ok(commitsCount.Value);
-                }
-                else
+                if (!commitsCount.HasValue)
                 {
                     return Results.Problem("An error ocurred");
                 }
 
-            }).WithName("GetAsync_GetCommitsCountAsync");
+                return Results.Ok(commitsCount.Value);
+
+            })
+            .WithName("GetAsync_GetCommitsCountAsync")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status500InternalServerError);
 
 
             app.MapGet("/getasyncapi/orgs/{orgname}/repos/{reponame}/commits", async ([FromRoute] string orgname, [FromRoute] string reponame,
@@ -150,7 +176,10 @@ namespace HttpClientMethods.Endpoints
                 {
                     cancellationManager.Cancel(connectionId);
                 }
-            }).WithName("GetAsync_GetCommitsAsync");
+            })
+            .WithName("GetAsync_GetCommitsAsync")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status500InternalServerError);
 
 
             app.MapGet("/getasyncapi/orgs/{orgname}/repos/{reponame}/commits/streams", async ([FromRoute] string orgname, [FromRoute] string reponame,
@@ -158,13 +187,16 @@ namespace HttpClientMethods.Endpoints
                                                                                            [FromServices] IGetAsyncEndpointsService getEndpointsService, HttpContext context) =>
             {
                 return Results.Ok("Hello from GetAsync_GetCommitsStreamAsync");
-            }).WithName("GetAsync_GetCommitsStreamAsync");
+            })
+            .WithName("GetAsync_GetCommitsStreamAsync");
 
 
             app.MapGet("/getasyncapi/orgs/{orgname}/repos/{reponame}/commits/streams/cancel", async ([FromRoute] string orgname, [FromRoute] string reponame,
                                                                                                  [FromQuery(Name = "page")] int page, [FromQuery(Name = "perPage")] int perPage, [FromQuery(Name = "totalPages")] int totalPages,
                                                                                                  [FromQuery(Name = "cid")] string connectionId,
-                                                                                                 [FromServices] IGetAsyncEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager, HttpContext context) =>
+                                                                                                 [FromServices] IGetAsyncEndpointsService getEndpointsService, 
+                                                                                                 [FromServices] CancellationManager cancellationManager, 
+                                                                                                 HttpContext context) =>
             {
                 CancellationToken token = cancellationManager.GetToken(connectionId, 30);
 
@@ -201,7 +233,8 @@ namespace HttpClientMethods.Endpoints
 
                 return Results.Empty;
 
-            }).WithName("GetAsync_GetCommitsStreamCancelAsync");
+            })
+            .WithName("GetAsync_GetCommitsStreamCancelAsync");
 
 
             #endregion

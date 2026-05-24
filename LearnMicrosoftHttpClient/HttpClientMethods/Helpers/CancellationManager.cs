@@ -4,27 +4,58 @@ namespace HttpClientMethods.Helpers
 {
     public class CancellationManager
     {
-        // Stores CTS by a unique key (e.g., a "JobId" or User ID)
         private readonly ConcurrentDictionary<string, CancellationTokenSource> _sources = new();
 
         public CancellationToken GetToken(string key, int? seconds = null)
         {
-            var cts = _sources.GetOrAdd(key, _ => new CancellationTokenSource());
-
-            if (seconds.HasValue)
+            while (true)
             {
-                cts.CancelAfter(TimeSpan.FromSeconds(seconds.Value));
-            }
+                if (_sources.TryGetValue(key, out var existingCts))
+                {
+                    if (existingCts.IsCancellationRequested)
+                    {
+                        if (_sources.TryRemove(key, out var oldCts))
+                        {
+                            oldCts.Dispose();
+                        }
+                        continue; // Loop back and create a fresh one
+                    }
 
-            return cts.Token;
+                    if (seconds.HasValue)
+                    {
+                        existingCts.CancelAfter(TimeSpan.FromSeconds(seconds.Value));
+                    }
+                    return existingCts.Token;
+                }
+
+                var newCts = new CancellationTokenSource();
+                if (_sources.TryAdd(key, newCts))
+                {
+                    if (seconds.HasValue)
+                    {
+                        newCts.CancelAfter(TimeSpan.FromSeconds(seconds.Value));
+                    }
+                    return newCts.Token;
+                }
+
+                newCts.Dispose();
+            }
         }
 
         public void Cancel(string key)
         {
             if (_sources.TryRemove(key, out var cts))
             {
-                cts.Cancel();
-                cts.Dispose();
+                try
+                {
+                    if (!cts.IsCancellationRequested)
+                    {
+                        cts.Cancel();
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                }
             }
         }
     }

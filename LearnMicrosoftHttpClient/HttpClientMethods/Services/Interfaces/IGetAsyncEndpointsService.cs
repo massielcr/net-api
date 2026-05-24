@@ -1,4 +1,6 @@
-﻿namespace HttpClientMethods.Services
+﻿using HttpClientMethods.Dtos;
+
+namespace HttpClientMethods.Services
 {
     public interface IGetAsyncEndpointsService
     {
@@ -16,7 +18,7 @@
 
 
         //GetAsync(String, HttpCompletionOption, CancellationToken)
-        IAsyncEnumerable<string> GetRepositoriesStreamAsync(string orgName, int page, int perPage, int totalPages, CancellationToken cancellationToken);
+        IAsyncEnumerable<GitHubRepositoryDto> GetRepositoriesStreamAsync(string orgName, int perPage, CancellationToken cancellationToken);
 
         #endregion
 

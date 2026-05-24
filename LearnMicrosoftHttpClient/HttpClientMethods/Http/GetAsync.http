@@ -18,7 +18,7 @@ Accept: text/html
 
 ### GetAsync(String, HttpCompletionOption, CancellationToken)
 
-GET {{HostAddress}}/getasyncapi/orgs/{{owner}}/repos/stream/cancel?page=1&perPage=10&totalPages=1&cid=1 HTTP/2
+GET {{HostAddress}}/getasyncapi/orgs/{{owner}}/repos/streamcancel?perPage=10&cid=1 HTTP/2
 Accept: application/json
 
 
