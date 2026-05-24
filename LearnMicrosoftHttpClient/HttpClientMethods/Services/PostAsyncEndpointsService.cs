@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace HttpClientMethods.Services
 {
@@ -47,13 +46,13 @@ namespace HttpClientMethods.Services
             return false;            
         }
 
-        public async Task<bool> CreatePersonalRepositoryIssuesAsync(string owner, string repo, string title, string body, int count, CancellationToken cancellationToken)
+        public async Task<bool> CreateRepositoryIssuesAsync(string owner, string repo, string title, string body, int count, CancellationToken cancellationToken)
         {
-            int counter = 1;
+            HttpClient httpClient = clientFactory.CreateClient("GitHub");
 
             string relativeUri = $"repos/{owner}/{repo}/issues";
 
-            HttpClient httpClient = clientFactory.CreateClient("GitHub");
+            int counter = 1;
 
             try
             {
@@ -102,39 +101,20 @@ namespace HttpClientMethods.Services
             return false;
         }
 
-        public async Task<bool> CreatePersonalRepositoryIssueAsync(string owner, string repo, string title, byte[] imageBody)
+        public async Task<bool> CreateRepositoryIssueAsync(string owner, string repo, string title, byte[] imageBody)
         {
-            if (imageBody == null || imageBody.Length == 0)
+            string? assetName = await CreateRepositoryContentAssetAsync(owner, repo, title, imageBody);
+
+            if (string.IsNullOrWhiteSpace(assetName))
             {
-                throw new ArgumentException("Image body cannot be null or empty.", nameof(imageBody));
+                logger.LogWarning("Failed to create content asset for issue '{IssueName}'.", title);
+                return false;
             }
 
             HttpClient httpClient = clientFactory.CreateClient("GitHub");
 
             try
             {
-                // Create the asset
-                string base64Image = Convert.ToBase64String(imageBody);
-                string assetName = $"issue_{Guid.NewGuid():N}.png";
-
-                Uri assetUri = new($"repos/{owner}/{repo}/contents/assets/{assetName}", UriKind.Relative);
-
-                var assetContent = new
-                {
-                    message = $"Add image for issue '{title}'",
-                    content = base64Image
-                };
-
-                using HttpResponseMessage response = await httpClient.PutAsJsonAsync(assetUri, assetContent);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    string errorBody = await response.Content.ReadAsStringAsync(CancellationToken.None);
-                    logger.LogWarning("GitHub API returned status {StatusCode} for asset '{AssetName}'. Details: {Details}", response.StatusCode, assetName, errorBody);
-                    return false;
-                }
-
-                // Create the Issue with the asset link
                 Uri relativeUri = new($"repos/{owner}/{repo}/issues", UriKind.Relative);
 
                 var issue = new
@@ -160,22 +140,140 @@ namespace HttpClientMethods.Services
             }
             catch (HttpRequestException ex)
             {
-                // Catches network dropout, DNS failures, or timeout exceptions
                 logger.LogError(ex, "Network error occurred while communicating with the GitHub API for issue '{IssueName}'.", title);                
             }
             catch (JsonException ex)
             {
-                // Catches any unexpected JSON parsing/serialization problems
                 logger.LogError(ex, "JSON formatting or parsing failed while working with GitHub payload for issue '{IssueName}'.", title);
             }
             catch (Exception ex)
             {
-                // Catch-all structural backup safety block
                 logger.LogError(ex, "An unexpected error occurred while executing CreatePersonalRepositoryIssueAsync for issue '{IssueName}'.", title);
             }
 
             return false;
 
+        }
+
+        public async Task<bool> CreateRepositoryIssuesAsync(string owner, string repo, string title, byte[] imageBody, int count, CancellationToken cancellationToken)
+        {
+            string? assetName = await CreateRepositoryContentAssetAsync(owner, repo, title, imageBody, cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(assetName))
+            {
+                logger.LogWarning("Failed to create content asset for issue '{IssueName}'.", title);
+                return false;
+            }
+
+            HttpClient httpClient = clientFactory.CreateClient("GitHub");
+
+            int counter = 1;
+
+            try
+            {
+                Uri relativeUri = new($"repos/{owner}/{repo}/issues", UriKind.Relative);
+
+                while(counter <= count)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var issue = new
+                    {
+                        title = $"{title} {counter}",
+                        body = $"![{assetName}](https://raw.githubusercontent.com/{owner}/{repo}/main/assets/{assetName})"
+                    };
+
+                    string issueJson = JsonSerializer.Serialize(issue, JsonSerializerOptions.Web);
+
+                    using StringContent issueStringContent = new(issueJson, System.Text.Encoding.UTF8, "application/json");
+
+                    using HttpResponseMessage issueResponse = await httpClient.PostAsync(relativeUri, issueStringContent, cancellationToken);
+
+                    if (!issueResponse.IsSuccessStatusCode)
+                    {
+                        string errorBody = await issueResponse.Content.ReadAsStringAsync(cancellationToken);
+                        logger.LogWarning("GitHub API returned status {StatusCode} for issue '{IssueName}'. Details: {Details}", issueResponse.StatusCode, title, errorBody);
+                        return false;
+                    }
+
+                    counter++;
+                }
+
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                logger.LogInformation("Issue creation was canceled by the user after creating {CreatedCount} issues.", counter);
+                throw;
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, "Network error occurred while communicating with the GitHub API for issue '{IssueName}'.", title);
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, "JSON formatting or parsing failed while working with GitHub payload for issue '{IssueName}'.", title);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An unexpected error occurred while executing CreatePersonalRepositoryIssueAsync for issue '{IssueName}'.", title);
+            }
+
+            return false;
+        }
+
+        public async Task<string?> CreateRepositoryContentAssetAsync(string owner, string repo, string title, byte[] imageBody, CancellationToken cancellationToken = default)
+        {
+            if (imageBody == null || imageBody.Length == 0)
+            {
+                throw new ArgumentException("Image body cannot be null or empty.", nameof(imageBody));
+            }
+
+            HttpClient httpClient = clientFactory.CreateClient("GitHub");
+
+            try
+            {
+                string base64Image = Convert.ToBase64String(imageBody);
+                string assetName = $"issue_{Guid.NewGuid():N}.png";
+
+                Uri assetUri = new($"repos/{owner}/{repo}/contents/assets/{assetName}", UriKind.Relative);
+
+                var assetContent = new
+                {
+                    message = $"Add image for issue '{title}'",
+                    content = base64Image
+                };
+
+                using HttpResponseMessage response = await httpClient.PutAsJsonAsync(assetUri, assetContent, cancellationToken);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                    logger.LogWarning("GitHub API returned status {StatusCode} for asset '{AssetName}'. Details: {Details}", response.StatusCode, assetName, errorBody);
+                    return null;
+                }
+
+                return assetName;
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogInformation(ex, "Issue creation was canceled by the user.");
+                throw;
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, "Network error occurred while communicating with the GitHub API for asset '{AssetName}'.", title);
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, "JSON formatting or parsing failed while working with GitHub payload for asset '{AssetName}'.", title);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An unexpected error occurred while executing CreatePersonalRepositoryIssueAsync for asset '{AssetName}'.", title);
+            }
+
+            return null;
         }
     }
 }

@@ -46,7 +46,7 @@ namespace HttpClientMethods.Endpoints
 
                 try
                 {
-                    bool success = await postAsyncEndpointsService.CreatePersonalRepositoryIssuesAsync(owner, repo, issue.Title, issue.Body, count, cancellationToken);
+                    bool success = await postAsyncEndpointsService.CreateRepositoryIssuesAsync(owner, repo, issue.Title, issue.Body, count, cancellationToken);
 
                     if (!success) { return Results.InternalServerError(new { error = "Could not create the issue." }); }
 
@@ -57,7 +57,7 @@ namespace HttpClientMethods.Endpoints
                     return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
                 }
             })
-            .WithName("PostAsync_CreatePersonalRepositoryIssuesAsync")
+            .WithName("PostAsync_CreateRepositoryIssuesAsync")
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status499ClientClosedRequest)
@@ -90,7 +90,7 @@ namespace HttpClientMethods.Endpoints
                     }
 
                     // Create issue with file content
-                    bool success = await postAsyncEndpointsService.CreatePersonalRepositoryIssueAsync(owner, repo, issue.Title, issueImage);
+                    bool success = await postAsyncEndpointsService.CreateRepositoryIssueAsync(owner, repo, issue.Title, issueImage);
 
                     if (!success) { return Results.InternalServerError(new { error = "Could not create the issue." }); }
 
@@ -101,9 +101,56 @@ namespace HttpClientMethods.Endpoints
                     return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
                 }
             })
-           .WithName("PostAsync_CreatePersonalRepositoryIssueWithImageAsync")
+           .WithName("PostAsync_CreateRepositoryIssueWithImageAsync")
            .Produces(StatusCodes.Status201Created)
            .Produces(StatusCodes.Status400BadRequest)
+           .Produces(StatusCodes.Status500InternalServerError);
+
+            app.MapPost("postasync/repos/{owner}/{repo}/issueswithimage", async ([FromRoute] string owner, [FromRoute] string repo,
+                                                                                 [FromQuery] int count, [FromQuery(Name = "cid")] string connectionId,
+                                                                                 [FromBody] CreatePersonalRepoIssueWithImageRequestDto issue,
+                                                                                 [FromServices] IPostAsyncEndpointsService postAsyncEndpointsService,
+                                                                                 [FromServices] IFileService fileService,
+                                                                                 [FromServices] IWebHostEnvironment webHostEnvironment,
+                                                                                 [FromServices] CancellationManager cancellationManager) =>
+            {
+
+                if (string.IsNullOrWhiteSpace(issue.Title))
+                {
+                    return Results.BadRequest(new { error = "Issue title cannot be empty." });
+                }
+
+                CancellationToken cancellationToken = cancellationManager.GetToken(connectionId, 30);
+
+                try
+                {
+                    //Get File content as byte array
+                    string webRoot = webHostEnvironment.WebRootPath ?? Path.Combine(webHostEnvironment.ContentRootPath, "wwwroot");
+                    string folderPath = Path.Combine(webRoot, "images");
+
+                    byte[] issueImage = await fileService.GetFileAsync(folderPath, issue.ImageFileName);
+
+                    if (issueImage == null || issueImage.Length == 0)
+                    {
+                        return Results.BadRequest(new { error = "Failed to retrieve the image." });
+                    }
+
+                    // Create issue with file content
+                    bool success = await postAsyncEndpointsService.CreateRepositoryIssuesAsync(owner, repo, issue.Title, issueImage, count, cancellationToken);
+
+                    if (!success) { return Results.InternalServerError(new { error = "Could not create the issue." }); }
+
+                    return Results.StatusCode(StatusCodes.Status201Created);
+                }
+                catch (OperationCanceledException)
+                {
+                    return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
+                }
+            })
+           .WithName("PostAsync_CreatePersonalRepositoryIssuesWithImageAsync")
+           .Produces(StatusCodes.Status201Created)
+           .Produces(StatusCodes.Status400BadRequest)
+           .Produces(StatusCodes.Status499ClientClosedRequest)
            .Produces(StatusCodes.Status500InternalServerError);
         }
     }
