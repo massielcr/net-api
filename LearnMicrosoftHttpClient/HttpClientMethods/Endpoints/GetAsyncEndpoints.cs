@@ -10,6 +10,8 @@ namespace HttpClientMethods.Endpoints
 {
     public static class GetAsyncEndpoints
     {
+        private static readonly Regex _cleanMessageRegex = new(@"[^a-zA-Z0-9\s]", RegexOptions.Compiled);
+
         public static void MapGetAsyncEndpoints(this WebApplication app)
         {
             #region Repositories
@@ -142,35 +144,41 @@ namespace HttpClientMethods.Endpoints
                                                                                    [FromQuery(Name = "cid")] string connectionId,
                                                                                    [FromServices] IGetAsyncEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager) =>
             {
-                var token = cancellationManager.GetToken(connectionId, 30);
+                var cancellationToken = cancellationManager.GetToken(connectionId, 30);
 
                 try
                 {
-                    IEnumerable<(string commitMessage, DateTime commitDate)> result = await getEndpointsService.GetCommitsAsync(orgname, reponame, page, perPage, totalPages, token);
+                    IEnumerable<GitHubCommitDto> result = await getEndpointsService.GetCommitsAsync(orgname, reponame, page, perPage, totalPages, cancellationToken).ConfigureAwait(false);
 
-
-                    if (result != null && result.Any())
+                    if (result == null || !result.Any())
                     {
-                        return Results.Ok(new
-                        {
-                            Commits = result.Select(c =>
-                            {
-                                var decodedMessage = WebUtility.HtmlDecode(c.commitMessage);
-                                var cleanMessage = Regex.Replace(decodedMessage.Replace("\n", " "), @"[^a-zA-Z0-9\s]", "").Trim();
-                                return $"{c.commitDate} -- {cleanMessage}";
-                            }),
-                            Total = result.Count()
-                        });
+                        return Results.Ok(new CommitsSummaryResponseDto { Commits = [], Total = 0 });
                     }
-                    else
+
+                    // Cache the execution list count to avoid double-enumeration of the IEnumerable
+                    var commitList = result.ToList();
+
+                    List<string> commitsSummary = commitList.Select(c =>
                     {
-                        return Results.Problem("No commits");
-                    }                    
+                        if (string.IsNullOrEmpty(c.CommitMessage)) return $"{c.CommitDate} -- ";
+
+                        string decodedMessage = WebUtility.HtmlDecode(c.CommitMessage);
+                        string flattenedMessage = decodedMessage.Replace("\n", " ", StringComparison.OrdinalIgnoreCase);
+                        string cleanMessage = _cleanMessageRegex.Replace(flattenedMessage, "").Trim();
+
+                        return $"{c.CommitDate} -- {cleanMessage}";
+                    }).ToList();
+
+                    return Results.Ok(new CommitsSummaryResponseDto()
+                    {
+                        Commits = commitsSummary,
+                        Total = commitList.Count
+                    });
                 }
                 catch (OperationCanceledException)
                 {
-                    // Return a specific status indicating the request was stopped
-                    return Results.StatusCode(499);
+                    // Return 499 indicating the request was stopped by client or system timeout
+                    return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
                 }
                 finally
                 {

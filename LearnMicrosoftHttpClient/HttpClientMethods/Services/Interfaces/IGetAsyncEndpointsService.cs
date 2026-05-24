@@ -29,7 +29,7 @@ namespace HttpClientMethods.Services
         Task<int?> GetCommitsCountAsync(string owner, string repo);
 
         //GetAsync(Uri, CancellationToken)
-        Task<IEnumerable<(string commitMessage, DateTime commitDate)>> GetCommitsAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, CancellationToken cancellationToken);
+        Task<IEnumerable<GitHubCommitDto>> GetCommitsAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, CancellationToken cancellationToken);
 
         //GetAsync(Uri, HttpCompletionOption)
         IAsyncEnumerable<(string commitMessage, DateTime commitDate)> GetCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages);

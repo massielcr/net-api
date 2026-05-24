@@ -9,8 +9,6 @@ namespace HttpClientMethods.Services
 {
     public class GetAsyncEndpointsService(IHttpClientFactory clientFactory, ILogger<GetAsyncEndpointsService> logger) : IGetAsyncEndpointsService
     {
-        private static readonly Regex _cleanMessageRegex = new(@"[^a-zA-Z0-9\s]", RegexOptions.Compiled);
-
         #region String
 
         //GetAsync(String)
@@ -300,9 +298,9 @@ namespace HttpClientMethods.Services
 
         
         //GetAsync(Uri, CancellationToken)
-        public async Task<IEnumerable<(string commitMessage, DateTime commitDate)>> GetCommitsAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, CancellationToken cancellationToken)
+        public async Task<IEnumerable<GitHubCommitDto>> GetCommitsAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, CancellationToken cancellationToken)
         {
-            List<(string commitMessage, DateTime commitDate)> result = [];
+            List<GitHubCommitDto> result = [];
 
             try
             {
@@ -322,20 +320,16 @@ namespace HttpClientMethods.Services
 
                     IEnumerable<JsonElement>? commits = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(stream, cancellationToken: cancellationToken);
 
-                    if (commits == null || !commits.Any())
-                    {
-                        break;
-                    }
+                    if (commits == null || !commits.Any()) { break; }
 
                     foreach (JsonElement commit in commits)
                     {
                         if (commit.TryGetProperty("commit", out var commitDetail))
                         {
-                            string rawMsg = commitDetail.GetProperty("message").GetString() ?? "";
+                            string message = commitDetail.GetProperty("message").GetString() ?? "";
                             DateTime date = commitDetail.GetProperty("committer").GetProperty("date").GetDateTime();
 
-                            var cleanMessage = _cleanMessageRegex.Replace(WebUtility.HtmlDecode(rawMsg).Replace("\n", " "), "").Trim();
-                            result.Add((cleanMessage, date));
+                            result.Add(new GitHubCommitDto(message, date));
                         }
                     }
 
@@ -435,13 +429,10 @@ namespace HttpClientMethods.Services
                     {
                         hasCommits = true;
 
-                        string rawCommitMessage = commit.GetProperty("commit").GetProperty("message").GetString() ?? string.Empty;
+                        string message = commit.GetProperty("commit").GetProperty("message").GetString() ?? string.Empty;
                         DateTime commitDate = commit.GetProperty("commit").GetProperty("committer").GetProperty("date").GetDateTime();
 
-                        var decoded = WebUtility.HtmlDecode(rawCommitMessage);
-                        var cleanMessage = _cleanMessageRegex.Replace(decoded.Replace("\n", " "), "").Trim();
-
-                        yield return (cleanMessage, commitDate);                        
+                        yield return (message, commitDate);                        
                     }                    
                 }
 
