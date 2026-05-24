@@ -1,46 +1,51 @@
 @owner = dotnet
 @repo1 = runtime
+@repo2 = efcore
 
-### GetAsync(String)                            ----    GetAsync_GetRepositoriesCountAsync
+@owner2 = massielcr
+@repo3 = massielcr
+
+
+### GetAsync(String)                                              ----    GetAsync_GetRepositoriesCountAsync
 
 GET {{HostAddress}}/getasyncapi/orgs/{{owner}}/repos/count HTTP/2
 Accept: application/json
 
-### GetAsync(String, CancellationToken)         ----    GetAsync_GetRepositoriesAsync
+### GetAsync(String, CancellationToken)                           ----    GetAsync_GetRepositoriesAsync
 
 GET {{HostAddress}}/getasyncapi/orgs/{{owner}}/repos?page=1&perPage=5&totalPages=1&cid=1 HTTP/2
 Accept: application/json
 
-### GetAsync(String, HttpCompletionOption)
+### GetAsync(String, HttpCompletionOption)                        ----    GetAsync_GetRepositoryReadmeAsync
 
 GET {{HostAddress}}/getasyncapi/repos/{{owner}}/{{repo1}}/readme HTTP/2
 Accept: text/html
 
-### GetAsync(String, HttpCompletionOption, CancellationToken)
+### GetAsync(String, HttpCompletionOption, CancellationToken)     ----    GetAsync_GetRepositoriesStreamCancelAsync 
 
 GET {{HostAddress}}/getasyncapi/orgs/{{owner}}/repos/streamcancel?perPage=10&cid=1 HTTP/2
 Accept: application/json
 
 
 
-### GetAsync_GetCommitsCountAsync               ----    GetAsync(Uri)
+### GetAsync(Uri)                                                 ----    GetAsync_GetCommitsCountAsync
 
-GET {{HostAddress}}/getasyncapi/repos/dotnet/efcore/commits/count HTTP/2
+GET {{HostAddress}}/getasyncapi/repos/{{owner}}/{{repo2}}/commits/count HTTP/2
 Accept: application/json
 
-### GetAsync_GetCommitsAsync                    ----    GetAsync(Uri, CancellationToken)
+### GetAsync(Uri, CancellationToken)                              ----    GetAsync_GetCommitsAsync
 
-GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos/efcore/commits?page=1&perPage=10&totalPages=1&cid=1 HTTP/2
-Accept: application/json
-
-
-### GetAsync_GetCommitsStreamAsync              ----    GetAsync(Uri, HttpCompletionOption)
-
-GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos/efcore/commits/streams?page=1&perPage=10&totalPages=1 HTTP/2
+GET {{HostAddress}}/getasyncapi/orgs/{{owner}}/repos/{{repo2}}/commits?page=1&perPage=10&totalPages=1&cid=1 HTTP/2
 Accept: application/json
 
 
-### GetAsync_GetCommitsStreamCancelAsync        ----    GetAsync(Uri, HttpCompletionOption, CancellationToken)
+###  GetAsync(Uri, HttpCompletionOption)                          ----    GetAsync_DownloadRepoArchiveAsync  
 
-GET {{HostAddress}}/getasyncapi/orgs/dotnet/repos/efcore/commits/streams/cancel?page=1&perPage=10&totalPages=1&cid=1 HTTP/2
+GET {{HostAddress}}/getasyncapi/repos/{{owner2}}/{{repo3}}/archive HTTP/2
+Accept: application/zip
+
+
+### GetAsync(Uri, HttpCompletionOption, CancellationToken)        ----    GetAsync_GetCommitsStreamCancelAsync
+
+GET {{HostAddress}}/getasyncapi/orgs/{{owner}}/repos/{{repo2}}/commits/streams/cancel?page=1&perPage=10&totalPages=1&cid=1 HTTP/2
 Accept: application/json

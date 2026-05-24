@@ -4,7 +4,7 @@ namespace HttpClientMethods.Services
 {
     public interface IGetAsyncEndpointsService
     {
-        #region relativeUri
+        #region String
 
         //GetAsync(String)
         Task<int?> GetRepositoriesCountAsync(string orgName);
@@ -32,7 +32,7 @@ namespace HttpClientMethods.Services
         Task<IEnumerable<GitHubCommitDto>> GetCommitsAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, CancellationToken cancellationToken);
 
         //GetAsync(Uri, HttpCompletionOption)
-        IAsyncEnumerable<(string commitMessage, DateTime commitDate)> GetCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages);
+        Task<byte[]?> GetRepoArchiveAsync(string owner, string repo);
 
         //GetAsync(Uri, HttpCompletionOption, CancellationToken)
         IAsyncEnumerable<(string commitMessage, DateTime commitDate)> GetCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, CancellationToken cancellationToken);

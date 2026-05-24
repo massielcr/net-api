@@ -360,11 +360,50 @@ namespace HttpClientMethods.Services
         }
 
         
-
         //GetAsync(Uri, HttpCompletionOption)
-        public async IAsyncEnumerable<(string commitMessage, DateTime commitDate)> GetCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages)
+        public async Task<byte[]?> GetRepoArchiveAsync(string owner, string repo)
         {
-            yield break;
+            Uri uri = new($"repos/{owner}/{repo}/zipball/main", UriKind.Relative);
+
+            try
+            {
+                HttpClient httpClient = clientFactory.CreateClient("GitHub");
+
+                HttpResponseMessage response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+
+                response.EnsureSuccessStatusCode();
+
+                if (response.Content.Headers.ContentLength >= 1024) // 1 KB
+                {
+                    logger.LogWarning("Repository archive for {Owner}/{Repo} is too large.", owner, repo);
+                    return null;
+                }
+
+                byte[] responseByteArray = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+
+                return responseByteArray;
+            }
+            catch (InvalidOperationException ex)
+            {
+                logger.LogError(ex, "The requestUri is not an absolute URI and BaseAddress isn't set.");
+            }
+            catch (UriFormatException ex)
+            {
+                logger.LogError(ex, "The provided request URI is not valid relative or absolute URI.");
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, "The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response. ");
+                logger.LogError(ex, ".NET Framework only: the request timed out.");
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogError(ex, "The cancellation token was canceled. This exception is stored into the returned task.");
+                logger.LogError(ex, ".NET Core and .NET 5 and later only: The request failed due to timeout.");
+                throw;
+            }
+
+            return null;
         }
 
 

@@ -190,13 +190,26 @@ namespace HttpClientMethods.Endpoints
             .Produces(StatusCodes.Status500InternalServerError);
 
 
-            app.MapGet("/getasyncapi/orgs/{orgname}/repos/{reponame}/commits/streams", async ([FromRoute] string orgname, [FromRoute] string reponame,
-                                                                                           [FromQuery(Name = "page")] int page, [FromQuery(Name = "perPage")] int perPage, [FromQuery(Name = "totalPages")] int totalPages,
-                                                                                           [FromServices] IGetAsyncEndpointsService getEndpointsService, HttpContext context) =>
+            app.MapGet("/getasyncapi/repos/{owner}/{repo}/archive", async ([FromRoute] string owner, [FromRoute] string repo,
+                                                                           [FromServices] IGetAsyncEndpointsService getEndpointsService,
+                                                                           [FromServices] IFileService fileService) =>
             {
-                return Results.Ok("Hello from GetAsync_GetCommitsStreamAsync");
+                byte[]? archiveBytes = await getEndpointsService.GetRepoArchiveAsync(owner, repo);
+
+                if (archiveBytes == null || archiveBytes.Length == 0)
+                {
+                    return Results.NotFound("Could not download repo archive");
+                }
+
+                return Results.File(
+                                    fileContents: archiveBytes,
+                                    contentType: "application/zip",
+                                    fileDownloadName: $"{repo}-main.zip"
+                                    );
             })
-            .WithName("GetAsync_GetCommitsStreamAsync");
+            .WithName("GetAsync_DownloadRepoArchiveAsync")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
 
 
             app.MapGet("/getasyncapi/orgs/{orgname}/repos/{reponame}/commits/streams/cancel", async ([FromRoute] string orgname, [FromRoute] string reponame,
