@@ -2,7 +2,7 @@
 @repo = my-test-http-repo
 
 
-### PostAsync(String, HttpContent)                                    ----      Create a Personal Repository via GitHub REST API
+### PostAsync(String, HttpContent)                                    ----      PostAsync_CreatePersonalRepositoryAsync
 
 POST {{HostAddress}}/postasync/repos  HTTP/2
 Accept: application/json
@@ -15,8 +15,7 @@ Content-Type: application/json
   "has_downloads": true
 }
 
-### PostAsync(String, HttpContent, CancellationToken)                 ----      Create Issues in Personal Repository via GitHub REST API
-
+### PostAsync(String, HttpContent, CancellationToken)                 ----      PostAsync_CreatePersonalRepositoryIssuesAsync
 POST {{HostAddress}}/postasync/repos/{{owner}}/{{repo}}/issues?count=1&cid=1  HTTP/2
 Accept: application/json
 Content-Type: application/json
@@ -26,17 +25,14 @@ Content-Type: application/json
 }
 
 
-### PostAsync(Uri, HttpContent)                                       ----      Create a Personal Repository via GitHub REST API
+### PostAsync(Uri, HttpContent)                                       ----      PostAsync_CreatePersonalRepositoryIssueWithImageAsync
 
-POST {{HostAddress}}/postasync/repos
-Accept: application/vnd.github+json
-User-Agent: MyTestService
+POST {{HostAddress}}/postasync/repos/{{owner}}/{{repo}}/issuewithimage  HTTP/2
+Accept: application/json
 Content-Type: application/json
 {
-  "name": "my-test-http-repo",
-  "description": "Created using an .http file!",
-  "private": true,
-  "auto_init": true
+  "title": "Found a bug",
+  "image": "issue_image.png"
 }
 
 

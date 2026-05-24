@@ -2,6 +2,23 @@
 {
     public class FileService : IFileService
     {
+        public Task<byte[]> GetFileAsync(string folderPath, string fileName)
+        {
+            if (!Directory.Exists(folderPath)) 
+            {
+                throw new DirectoryNotFoundException("Folder not found.");
+            }
+
+            string fullPath = Path.Combine(folderPath, fileName);
+
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException("File not found.");
+            }
+            
+            return File.ReadAllBytesAsync(fullPath);
+        }
+
         public async Task<bool> SaveFileAsync(byte[] data, string folderPath, string fileName, bool overwrite = false)
         {
             try
@@ -98,8 +115,6 @@
 
             // Default fallback if unknown binary pattern
             return "image/jpeg";
-        }
-
-       
+        }        
     }
 }
