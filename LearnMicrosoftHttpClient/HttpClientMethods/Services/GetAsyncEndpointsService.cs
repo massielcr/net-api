@@ -165,7 +165,6 @@ namespace HttpClientMethods.Services
             catch (OperationCanceledException ex)
             {
                 logger.LogError(ex, ".NET Core and .NET 5 and later only: The request failed due to timeout.");
-
             }
 
             return null;

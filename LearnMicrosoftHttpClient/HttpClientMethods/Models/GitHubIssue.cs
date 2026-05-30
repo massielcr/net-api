@@ -12,6 +12,6 @@ namespace HttpClientMethods.Models
 
         public List<string> Labels { get; set; } = [];
 
-        public string LockReason { get; set; }
+        public string LockReason { get; set; } = string.Empty;
     }
 }

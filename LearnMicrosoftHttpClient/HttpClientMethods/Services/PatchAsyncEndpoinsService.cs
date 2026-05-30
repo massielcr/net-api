@@ -1,32 +1,37 @@
 ﻿using HttpClientMethods.Models;
+using HttpClientMethods.Services.Interfaces;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace HttpClientMethods.Services
 {
-    public class PutAsyncEndpointsService(IHttpClientFactory httpClientFactory, ILogger<PutAsyncEndpointsService> logger) : IPutAsyncEndpointsService
+    public class PatchAsyncEndpoinsService(IHttpClientFactory httpClientFactory, ILogger<PatchAsyncEndpoinsService> logger) : IPatchAsyncEndpoinsService
     {
-        //PutAsync(String, HttpContent) - JsonContent
-        public async Task<bool> UpdateRepositoryTopicsAsync(string owner, string repo, List<string> names)
+        //PatchAsync(String, HttpContent)
+        public async Task<bool> UpdateRepoVisibilityAsync(string owner, string repo, string visibility)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
 
-            string relativeUri = $"repos/{owner}/{repo}/topics";
+            JsonSerializerOptions jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
-            JsonContent content = JsonContent.Create(new { names });
+            string uri = $"repos/{owner}/{repo}";
+
+            var githubRepo = new { visibility };            
 
             try
             {
-                using HttpResponseMessage response = await httpClient.PutAsync(relativeUri, content);
+                JsonContent jsonContent = JsonContent.Create(githubRepo, options: jsonSerializerOptions);
+
+                using HttpResponseMessage response = await httpClient.PatchAsync(uri, jsonContent);
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    string responseContent = await response.Content.ReadAsStringAsync();
-                    logger.LogError("Failed to replace repository topics. Status Code: {StatusCode}, Response: {ResponseContent}", response.StatusCode, responseContent);
+                    logger.LogError("Failed to update repository visibility. Status Code: {StatusCode}", response.StatusCode);
                     return false;
                 }
 
                 return true;
+
             }
             catch (InvalidOperationException ex)
             {
@@ -49,33 +54,37 @@ namespace HttpClientMethods.Services
             return false;
         }
 
-        //PutAsync(String, HttpContent, CancellationToken) - StringContent
-        public async Task<bool> LockRepositoryIssuesAsync(string owner, string repo, List<GitHubIssue> githubIssues, CancellationToken cancellationToken)
+        //PatchAsync(String, HttpContent, CancellationToken)
+        public async Task<bool> UpdateRepoIssuesAsync(string owner, string repo, IEnumerable<GitHubIssue> issues, CancellationToken cancellationToken)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
 
-            JsonSerializerOptions options = new(options: JsonSerializerOptions.Web);
+            JsonSerializerOptions jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
-            foreach (var item in githubIssues)
+            foreach (GitHubIssue issue in issues)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                string relativeUri = $"repos/{owner}/{repo}/issues/{item.IssueNumber}/lock";                
+                string uri = $"repos/{owner}/{repo}/issues/{issue.IssueNumber}";
 
-                var issue = new { lock_reason = item.LockReason};
+                var githubIssue = new
+                {
+                    state = issue.State,
+                    state_reason = issue.StateReason,
+                    labels = issue.Labels
+                };
 
-                StringContent content = new(JsonSerializer.Serialize(issue, options), System.Text.Encoding.UTF8, "application/json");
+                JsonContent jsonContent = JsonContent.Create(githubIssue, options: jsonSerializerOptions);
 
                 try
                 {
-                    using HttpResponseMessage response = await httpClient.PutAsync(relativeUri, content, cancellationToken);
+                    using HttpResponseMessage response = await httpClient.PatchAsync(uri, jsonContent, cancellationToken);
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                        logger.LogError("Failed to update repository issue. Status Code: {StatusCode}, Response: {ResponseContent}", response.StatusCode, responseContent);
+                        logger.LogError("Failed to update issue #{IssueNumber}. Status Code: {StatusCode}", issue.IssueNumber, response.StatusCode);
                         return false;
-                    }
+                    }                    
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -104,27 +113,31 @@ namespace HttpClientMethods.Services
         }
 
 
-        //PutAsync(Uri, HttpContent) - StringContent
-        public async Task<bool> LockRepositoryIssueAsync(string owner, string repo, GitHubIssue githubIssue)
+        //PatchAsync(Uri, HttpContent)
+        public async Task<bool> UpdateRepoIssueAsync(string owner, string repo, GitHubIssue issue)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
 
-            Uri uri = new($"repos/{owner}/{repo}/issues/{githubIssue.IssueNumber}/lock", UriKind.Relative);
+            JsonSerializerOptions jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
-            JsonSerializerOptions options = new(options: JsonSerializerOptions.Web);
+            Uri uri = new($"repos/{owner}/{repo}/issues/{issue.IssueNumber}", UriKind.Relative);
 
-            var issue = new { lock_reason = githubIssue.LockReason };
+            var githubIssue = new
+            {
+                state = issue.State,
+                state_reason = issue.StateReason,
+                labels = issue.Labels
+            };
 
-            StringContent content = new(JsonSerializer.Serialize(issue, options), System.Text.Encoding.UTF8, "application/json");
+            JsonContent jsonContent = JsonContent.Create(githubIssue, options: jsonSerializerOptions);
 
             try
             {
-                using HttpResponseMessage response = await httpClient.PutAsync(uri, content);
+                using HttpResponseMessage response = await httpClient.PatchAsync(uri, jsonContent);
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    string responseContent = await response.Content.ReadAsStringAsync();
-                    logger.LogError("Failed to update repository issue. Status Code: {StatusCode}, Response: {ResponseContent}", response.StatusCode, responseContent);
+                    logger.LogError("Failed to update issue #{IssueNumber}. Status Code: {StatusCode}", issue.IssueNumber, response.StatusCode);
                     return false;
                 }
 
@@ -145,44 +158,45 @@ namespace HttpClientMethods.Services
             }
             catch (OperationCanceledException ex)
             {
-                logger.LogError(ex, $".NET Core and .NET 5 and later only: The request failed due to timeout.");
+                logger.LogError(ex, ".NET Core and .NET 5 and later only: The request failed due to timeout.");
             }
 
             return false;
         }
 
-        //PutAsync(Uri, HttpContent, CancellationToken) - StringContent
-        public async IAsyncEnumerable<int> LockRepositoryIssuesStreamAsync(string owner, string repo, List<GitHubIssue> githubIssues, [EnumeratorCancellation] CancellationToken cancellationToken)
+        //PatchAsync(Uri, HttpContent, CancellationToken)
+        public async IAsyncEnumerable<int> UpdateRepoIssuesStreamAsync(string owner, string repo, IEnumerable<GitHubIssue> issues, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
 
-            JsonSerializerOptions options = new(JsonSerializerOptions.Web)
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-            };
+            JsonSerializerOptions jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
-            await foreach (var item in githubIssues.ToAsyncEnumerable().WithCancellation(cancellationToken))
+            await foreach(GitHubIssue issue in issues.ToAsyncEnumerable().WithCancellation(cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 bool isSuccess = false;
 
+                Uri uri = new($"repos/{owner}/{repo}/issues/{issue.IssueNumber}", UriKind.Relative);
+
+                var githubIssue = new
+                {
+                    state = issue.State,
+                    state_reason = issue.StateReason,
+                    labels = issue.Labels
+                };
+
+                JsonContent jsonContent = JsonContent.Create(githubIssue, options: jsonSerializerOptions);
+
                 try
                 {
-                    Uri uri = new($"repos/{owner}/{repo}/issues/{item.IssueNumber}/lock", UriKind.Relative);
-
-                    var issue = new { lock_reason = item.LockReason };
-
-                    StringContent content = new(JsonSerializer.Serialize(issue, options), System.Text.Encoding.UTF8, "application/json");
-
-                    using HttpResponseMessage response = await httpClient.PutAsync(uri, content, cancellationToken);
+                    using HttpResponseMessage response = await httpClient.PatchAsync(uri, jsonContent, cancellationToken);
 
                     isSuccess = response.IsSuccessStatusCode;
-
-                    if (!response.IsSuccessStatusCode)
+                    
+                    if (!isSuccess)
                     {
-                        string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                        logger.LogError("Failed to update repository issue. Status Code: {StatusCode}, Response: {ResponseContent}", response.StatusCode, responseContent);
+                        logger.LogError("Failed to update issue #{IssueNumber}. Status Code: {StatusCode}", issue.IssueNumber, response.StatusCode);
                         yield break;
                     }                    
                 }
@@ -207,11 +221,11 @@ namespace HttpClientMethods.Services
 
                 if (isSuccess)
                 {
-                    yield return item.IssueNumber;
+                    yield return issue.IssueNumber;    
                 }
             }
 
             yield break;
-        }
+        }        
     }
 }

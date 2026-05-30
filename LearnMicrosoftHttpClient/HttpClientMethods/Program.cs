@@ -2,6 +2,7 @@ using HttpClientMethods.Dtos;
 using HttpClientMethods.Endpoints;
 using HttpClientMethods.Helpers;
 using HttpClientMethods.Services;
+using HttpClientMethods.Services.Interfaces;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -36,6 +37,7 @@ builder.Services.AddScoped<IGetByteArrayAsyncEndpointsService, GetByteArrayAsync
 builder.Services.AddScoped<IGetStringAsyncEndpointsService, GetStringAsyncEndpointsService>();
 builder.Services.AddScoped<IPostAsyncEndpointsService, PostAsyncEndpointsService>();
 builder.Services.AddScoped<IPutAsyncEndpointsService, PutAsyncEndpointsService>();
+builder.Services.AddScoped<IPatchAsyncEndpoinsService, PatchAsyncEndpoinsService>();
 builder.Services.AddScoped<ISendAsyncEndpointsService, SendAsyncEndpointsService>();
 
 
@@ -79,6 +81,7 @@ app.MapGetByteArrayAsyncEndpoints();
 app.MapGetStringAsyncEndpoints();
 app.MapPostAsyncEndpoints();
 app.MapPutAsyncEndpoints();
+app.MapPatchAsyncEndpoints();
 app.MapSendAsyncEndpoints();
 app.MapCancellationEndpoints();
 

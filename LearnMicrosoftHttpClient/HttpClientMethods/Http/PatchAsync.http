@@ -1,5 +1,121 @@
-### PutAsync(String, HttpContent, CancellationToken)
-PUT {{HostAddress}}/putasync/repos/{{owner}}/{{repo}}/issues/updatebatch?cid=1 HTTP/2
+@owner = massielcr
+@repo = my-test-http-repo
+
+### PatchAsync(Uri, HttpContent) -                        ----    PatchAsync_UpdateRepoVisibilityAsync      visibility:public, private
+PATCH {{HostAddress}}/patchasync/repos/{{owner}}/{{repo}}/update HTTP/2
+Accept : application/json
+Content-Type: application/json
+{
+  "visibility": "public"
+}
+
+
+### PatchAsync(String, HttpContent, CancellationToken)    ----    PatchAsync_UpdateBatchIssuesAsync     state:open, closed, state_reason:not_planned, duplicate, reopened
+PATCH {{HostAddress}}/patchasync/repos/{{owner}}/{{repo}}/issues/updatebatch?cid=1 HTTP/2
+Accept : application/json
+Content-Type: application/json
+{
+  "issues": [
+    {
+     "issue_number": "1",
+     "state": "closed",
+     "state_reason": "duplicate",
+     "labels": [
+       "bug"
+     ]  
+    },
+    {
+     "issue_number": "2",
+     "state": "closed",
+     "state_reason": "duplicate",
+     "labels": [
+       "enhancement"
+     ]  
+    },
+    {
+     "issue_number": "3",
+     "state": "closed",
+     "state_reason": "duplicate",
+     "labels": [
+       "enhancement"
+     ]
+    },
+    {
+     "issue_number": "4",
+     "state": "closed",
+     "state_reason": "duplicate",
+     "labels": [
+       "bug"
+     ]  
+    },
+    {
+     "issue_number": "5",
+     "state": "closed",
+     "state_reason": "duplicate",
+     "labels": [
+       "enhancement"
+     ]  
+    },
+    {
+     "issue_number": "6",
+     "state": "closed",
+     "state_reason": "duplicate",
+     "labels": [
+       "enhancement"
+     ]
+    },
+    {
+     "issue_number": "7",
+     "state": "closed",
+     "state_reason": "duplicate",
+     "labels": [
+       "bug"
+     ]  
+    },
+    {
+     "issue_number": "8",
+     "state": "closed",
+     "state_reason": "duplicate",
+     "labels": [
+       "enhancement"
+     ]  
+    },
+    {
+     "issue_number": "9",
+     "state": "closed",
+     "state_reason": "duplicate",
+     "labels": [
+       "enhancement"
+     ]
+    },
+    {
+     "issue_number": "10",
+     "state": "closed",
+     "state_reason": "duplicate",
+     "labels": [
+       "bug"
+     ]  
+    }
+  ]
+}
+
+
+### PatchAsync(Uri, HttpContent)                          ----    PatchAsync_UpdateIssueAsync     state:open, closed, state_reason:not_planned, duplicate, reopened
+PATCH {{HostAddress}}/patchasync/repos/{{owner}}/{{repo}}/issues/update HTTP/2
+Accept : application/json
+Content-Type: application/json
+{
+  "issue_number": "1",
+  "state": "open",
+  "state_reason": "not_planned",
+  "labels": [
+    "bug"
+  ]  
+}
+
+
+### PatchAsync(Uri, HttpContent, CancellationToken)       ----    PatchAsync_UpdateBatchIssuesStreamAsync     state:open, closed, state_reason:not_planned, duplicate, reopened
+PATCH {{HostAddress}}/patchasync/repos/{{owner}}/{{repo}}/issues/updatebatchstream?cid=1 HTTP/2
 Accept : application/json
 Content-Type: application/json
 {
@@ -14,16 +130,16 @@ Content-Type: application/json
     },
     {
      "issue_number": "2",
-     "state": "closed",
-     "state_reason": "completed",
+     "state": "open",
+     "state_reason": "reopened",
      "labels": [
        "enhancement"
      ]  
     },
     {
      "issue_number": "3",
-     "state": "closed",
-     "state_reason": "completed",
+     "state": "open",
+     "state_reason": "reopened",
      "labels": [
        "enhancement"
      ]
@@ -38,16 +154,16 @@ Content-Type: application/json
     },
     {
      "issue_number": "5",
-     "state": "closed",
-     "state_reason": "completed",
+     "state": "open",
+     "state_reason": "reopened",
      "labels": [
        "enhancement"
      ]  
     },
     {
      "issue_number": "6",
-     "state": "closed",
-     "state_reason": "completed",
+     "state": "open",
+     "state_reason": "reopened",
      "labels": [
        "enhancement"
      ]
@@ -62,16 +178,16 @@ Content-Type: application/json
     },
     {
      "issue_number": "8",
-     "state": "closed",
-     "state_reason": "completed",
+     "state": "open",
+     "state_reason": "reopened",
      "labels": [
        "enhancement"
      ]  
     },
     {
      "issue_number": "9",
-     "state": "closed",
-     "state_reason": "completed",
+     "state": "open",
+     "state_reason": "reopened",
      "labels": [
        "enhancement"
      ]
@@ -82,143 +198,6 @@ Content-Type: application/json
      "state_reason": "reopened",
      "labels": [
        "bug"
-     ]  
-    },
-    {
-     "issue_number": "11",
-     "state": "closed",
-     "state_reason": "completed",
-     "labels": [
-       "enhancement"
-     ]  
-    },
-    {
-     "issue_number": "12",
-     "state": "closed",
-     "state_reason": "completed",
-     "labels": [
-       "enhancement"
-     ]  
-    }
-  ]
-}
-
-
-### PutAsync(Uri, HttpContent)
-PUT {{HostAddress}}/putasync/repos/{{owner}}/{{repo}}/issues/update HTTP/2
-Accept : application/json
-Content-Type: application/json
-{
-  "issue_number": "1",
-  "state": "open",
-  "state_reason": "reopened",
-  "labels": [
-    "bug"
-  ]  
-}
-
-
-
-### PutAsync(Uri, HttpContent, CancellationToken)
-PUT {{HostAddress}}/putasync/repos/{{owner}}/{{repo}}/issues/updatebatchstream?cid=1 HTTP/2
-Accept : application/json
-Content-Type: application/json
-{
-  issues: [
-    {
-     "issue_number": "1"
-     "state": "open",
-     "state_reason": "reopened",
-     "labels": [
-       "bug"
-     ]  
-    },
-    {
-     "issue_number": "2"
-     "state": "closed",
-     "state_reason": "completed",
-     "labels": [
-       "enhancement"
-     ]  
-    },
-    {
-     "issue_number": "3"
-     "state": "closed",
-     "state_reason": "completed",
-     "labels": [
-       "enhancement"
-     ]
-    },
-    {
-     "issue_number": "4"
-     "state": "open",
-     "state_reason": "reopened",
-     "labels": [
-       "bug"
-     ]  
-    },
-    {
-     "issue_number": "5"
-     "state": "closed",
-     "state_reason": "completed",
-     "labels": [
-       "enhancement"
-     ]  
-    },
-    {
-     "issue_number": "6"
-     "state": "closed",
-     "state_reason": "completed",
-     "labels": [
-       "enhancement"
-     ]
-    },
-    {
-     "issue_number": "7"
-     "state": "open",
-     "state_reason": "reopened",
-     "labels": [
-       "bug"
-     ]  
-    },
-    {
-     "issue_number": "8"
-     "state": "closed",
-     "state_reason": "completed",
-     "labels": [
-       "enhancement"
-     ]  
-    },
-    {
-     "issue_number": "9"
-     "state": "closed",
-     "state_reason": "completed",
-     "labels": [
-       "enhancement"
-     ]
-    },
-    {
-     "issue_number": "10"
-     "state": "open",
-     "state_reason": "reopened",
-     "labels": [
-       "bug"
-     ]  
-    },
-    {
-     "issue_number": "11"
-     "state": "closed",
-     "state_reason": "completed",
-     "labels": [
-       "enhancement"
-     ]  
-    },
-    {
-     "issue_number": "12"
-     "state": "closed",
-     "state_reason": "completed",
-     "labels": [
-       "enhancement"
      ]  
     }
   ]
