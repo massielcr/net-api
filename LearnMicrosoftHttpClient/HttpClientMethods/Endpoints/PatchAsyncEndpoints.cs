@@ -153,7 +153,11 @@ namespace HttpClientMethods.Endpoints
                 }
                 catch (OperationCanceledException)
                 {
-                    return Results.StatusCode(499);
+                    context.Response.StatusCode = 499;
+                }
+                finally
+                {
+                    cancellationManager.Cancel(connectionId);
                 }
 
                 return Results.Empty;
