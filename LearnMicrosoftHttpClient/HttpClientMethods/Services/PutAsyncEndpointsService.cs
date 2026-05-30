@@ -153,6 +153,61 @@ namespace HttpClientMethods.Services
         //PutAsync(Uri, HttpContent, CancellationToken)
         public async IAsyncEnumerable<int> LockRepositoryIssuesStreamAsync(string owner, string repo, List<GitHubIssue> githubIssues, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
+            HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
+
+            JsonSerializerOptions options = new(JsonSerializerOptions.Web)
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+            };
+
+            await foreach (var item in githubIssues.ToAsyncEnumerable().WithCancellation(cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                bool isSuccess = false;
+
+                try
+                {
+                    Uri uri = new($"repos/{owner}/{repo}/issues/{item.IssueNumber}/lock", UriKind.Relative);
+
+                    var issue = new { lock_reason = item.LockReason };
+
+                    StringContent content = new(JsonSerializer.Serialize(issue, options), System.Text.Encoding.UTF8, "application/json");
+
+                    using HttpResponseMessage response = await httpClient.PutAsync(uri, content, cancellationToken);
+
+                    isSuccess = response.IsSuccessStatusCode;
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                        logger.LogError("Failed to update repository issue. Status Code: {StatusCode}, Response: {ResponseContent}", response.StatusCode, responseContent);
+                    }                    
+                }
+                catch (InvalidOperationException ex)
+                {
+                    logger.LogError(ex, $"The requestUri is not an absolute URI and BaseAddress isn't set.");
+                }
+                catch (UriFormatException ex)
+                {
+                    logger.LogError(ex, $"The provided request URI is not valid relative or absolute URI.");
+                }
+                catch (HttpRequestException ex)
+                {
+                    logger.LogError(ex, $"The request failed due to an issue getting a valid HTTP response, such as network connectivity failure, DNS failure, server certificate validation error, or invalid server response");
+                    logger.LogError(ex, $".NET Framework only: the request timed out.");
+                }
+                catch (OperationCanceledException ex)
+                {
+                    logger.LogError(ex, $".NET Core and .NET 5 and later only: The request failed due to timeout.");
+                }
+
+                if (isSuccess)
+                {
+                    yield return item.IssueNumber;
+                }
+            }
+
             yield break;
         }
     }

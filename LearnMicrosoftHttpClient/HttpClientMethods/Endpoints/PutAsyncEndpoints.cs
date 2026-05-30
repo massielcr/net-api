@@ -97,10 +97,11 @@ namespace HttpClientMethods.Endpoints
 
 
             app.MapPut("putasync/repos/{owner}/{repo}/issues/lockbatchstream", async ([FromRoute] string owner, [FromRoute] string repo,
-                                                                                        [FromQuery] string connectionId,
-                                                                                        [FromBody] LockRepoIssuesRequestDto issues,                                                                                  
-                                                                                        [FromServices] IPutAsyncEndpointsService putAsyncEndpointsService,
-                                                                                        [FromServices] CancellationManager cancellationManager) =>
+                                                                                      [FromQuery(Name = "cid")] string connectionId,
+                                                                                      [FromBody] LockRepoIssuesRequestDto issues,                                                                                  
+                                                                                      [FromServices] IPutAsyncEndpointsService putAsyncEndpointsService,
+                                                                                      [FromServices] CancellationManager cancellationManager,
+                                                                                      HttpContext context) =>
             {
                 if (issues == null || !issues.Issues.Any())
                 {
@@ -115,9 +116,38 @@ namespace HttpClientMethods.Endpoints
                     LockReason = i.LockReason,
                 }).ToList();
 
-                IAsyncEnumerable<int> success = putAsyncEndpointsService.LockRepositoryIssuesStreamAsync(owner, repo, githubIssues, cancellationToken);
+                int count = 0;
 
-                return Results.Ok();
+                try
+                {
+                    IAsyncEnumerable<int> lockedIssues = putAsyncEndpointsService.LockRepositoryIssuesStreamAsync(owner, repo, githubIssues, cancellationToken);
+
+                    await foreach (var issueNumber in lockedIssues.WithCancellation(cancellationToken))
+                    {
+                        count++;
+
+                        string result = $"Locked Issue #{issueNumber}";
+
+                        await context.Response.WriteAsync($"{result}\n", cancellationToken);
+
+                        await context.Response.Body.FlushAsync(cancellationToken);
+
+                        await Task.Delay(TimeSpan.FromSeconds(1));
+                    }
+
+                    await context.Response.WriteAsync($"----Total Issues Locked: {count}-------\n", cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    await context.Response.WriteAsync("Client disconnected\n", cancellationToken);
+                    await context.Response.Body.FlushAsync(cancellationToken);
+                }
+                finally
+                {
+                    cancellationManager.Cancel(connectionId);
+                }
+
+                return Results.Empty;
             })
             .WithName("PutAsync_LockRepositoryIssuesStreamAsync");
         }

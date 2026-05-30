@@ -69,54 +69,38 @@ PUT {{HostAddress}}/putasync/repos/{{owner}}/{{repo}}/issues/lockbatchstream?cid
 Accept : application/json
 Content-Type: application/json
 {
-  issues: [
+  "issues": [
     {
-     "issue_number": "1"
+     "issue_number": "1",
      "lock_reason": "resolved"  
     },
     {
-     "issue_number": "2"
+     "issue_number": "2",
      "lock_reason": "resolved"   
     },
     {
-     "issue_number": "3"
+     "issue_number": "3",
      "lock_reason": "resolved" 
     },
     {
-     "issue_number": "4"
+     "issue_number": "4",
      "lock_reason": "resolved"  
     },
     {
-     "issue_number": "5"
+     "issue_number": "5",
      "lock_reason": "resolved" 
     },
     {
-     "issue_number": "6"
+     "issue_number": "6",
      "lock_reason": "resolved" 
     },
     {
-     "issue_number": "7"
+     "issue_number": "7",
      "lock_reason": "resolved"  
     },
     {
-     "issue_number": "8"
+     "issue_number": "8",
      "lock_reason": "resolved"  
-    },
-    {
-     "issue_number": "9"
-     "lock_reason": "resolved" 
-    },
-    {
-     "issue_number": "10"
-     "lock_reason": "resolved"  
-    },
-    {
-     "issue_number": "11"
-     "lock_reason": "resolved"   
-    },
-    {
-     "issue_number": "12"
-     "lock_reason": "resolved" 
     }
   ]
 }
