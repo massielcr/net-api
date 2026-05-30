@@ -14,7 +14,6 @@ Content-Type: application/json
   ]
 }
 
-
 ### PutAsync(String, HttpContent, CancellationToken)
 PUT {{HostAddress}}/putasync/repos/{{owner}}/{{repo}}/issues/lockbatch?cid=1 HTTP/2
 Accept : application/json
@@ -56,7 +55,6 @@ Content-Type: application/json
   ]
 }
 
-
 ### PutAsync(Uri, HttpContent)
 PUT {{HostAddress}}/putasync/repos/{{owner}}/{{repo}}/issues/lock HTTP/2
 Accept : application/json
@@ -65,8 +63,6 @@ Content-Type: application/json
   "issue_number": "9",
   "lock_reason": "too heated" 
 }
-
-
 
 ### PutAsync(Uri, HttpContent, CancellationToken)
 PUT {{HostAddress}}/putasync/repos/{{owner}}/{{repo}}/issues/lockbatchstream?cid=1 HTTP/2
