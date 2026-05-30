@@ -35,6 +35,7 @@ builder.Services.AddScoped<IGetStreamAsyncEndpointsService, GetStreamAsyncEndpoi
 builder.Services.AddScoped<IGetByteArrayAsyncEndpointsService, GetByteArrayAsyncEndpointsService>();
 builder.Services.AddScoped<IGetStringAsyncEndpointsService, GetStringAsyncEndpointsService>();
 builder.Services.AddScoped<IPostAsyncEndpointsService, PostAsyncEndpointsService>();
+builder.Services.AddScoped<IPutAsyncEndpointsService, PutAsyncEndpointsService>();
 builder.Services.AddScoped<ISendAsyncEndpointsService, SendAsyncEndpointsService>();
 
 
@@ -77,6 +78,7 @@ app.MapGetStreamAsyncEndpoints();
 app.MapGetByteArrayAsyncEndpoints();
 app.MapGetStringAsyncEndpoints();
 app.MapPostAsyncEndpoints();
+app.MapPutAsyncEndpoints();
 app.MapSendAsyncEndpoints();
 app.MapCancellationEndpoints();
 

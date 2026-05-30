@@ -1,0 +1,25 @@
+@owner = massielcr
+@repo = my-test-http-repo
+
+### PutAsync(String, HttpContent)
+PUT {{HostAddress}}/putasync/repos/{{owner}}/{{repo}}/topics HTTP/2
+Accept : application/json
+Content-Type: application/json
+{
+  "names": [
+    "httpclient",
+    "api",
+    "csharp"
+  ]
+}
+
+
+### PutAsync(String, HttpContent, CancellationToken)
+
+
+
+### PutAsync(Uri, HttpContent)
+
+
+
+### PutAsync(Uri, HttpContent, CancellationToken)
