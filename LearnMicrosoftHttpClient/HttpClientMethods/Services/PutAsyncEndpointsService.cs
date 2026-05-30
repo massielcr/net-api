@@ -6,7 +6,7 @@ namespace HttpClientMethods.Services
 {
     public class PutAsyncEndpointsService(IHttpClientFactory httpClientFactory, ILogger<PutAsyncEndpointsService> logger) : IPutAsyncEndpointsService
     {
-        //PutAsync(String, HttpContent)
+        //PutAsync(String, HttpContent) - JsonContent
         public async Task<bool> UpdateRepositoryTopicsAsync(string owner, string repo, List<string> names)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
@@ -49,7 +49,7 @@ namespace HttpClientMethods.Services
             return false;
         }
 
-        //PutAsync(String, HttpContent, CancellationToken)
+        //PutAsync(String, HttpContent, CancellationToken) - StringContent
         public async Task<bool> LockRepositoryIssuesAsync(string owner, string repo, List<GitHubIssue> githubIssues, CancellationToken cancellationToken)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
@@ -103,7 +103,8 @@ namespace HttpClientMethods.Services
             return true;
         }
 
-        //PutAsync(Uri, HttpContent)
+
+        //PutAsync(Uri, HttpContent) - StringContent
         public async Task<bool> LockRepositoryIssueAsync(string owner, string repo, GitHubIssue githubIssue)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
@@ -150,7 +151,7 @@ namespace HttpClientMethods.Services
             return false;
         }
 
-        //PutAsync(Uri, HttpContent, CancellationToken)
+        //PutAsync(Uri, HttpContent, CancellationToken) - StringContent
         public async IAsyncEnumerable<int> LockRepositoryIssuesStreamAsync(string owner, string repo, List<GitHubIssue> githubIssues, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("GitHub");

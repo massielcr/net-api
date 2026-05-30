@@ -7,6 +7,7 @@ namespace HttpClientMethods.Services
         //GetByteArrayAsync(String)	
         public Task<GitHubAvatar?> GetAvatarStringAsync(string username);
 
+
         //GetByteArrayAsync(Uri)
         public Task<GitHubAvatar?> GetAvatarUriAsync(string username);
     }

@@ -25,7 +25,7 @@ namespace HttpClientMethods.Endpoints
 
                 return Results.Ok();
             })
-            .WithName("PutAsync_ReplaceRepositoryTopicsAsync")
+            .WithName("PutAsync_UpdateRepositoryTopicsAsync")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);

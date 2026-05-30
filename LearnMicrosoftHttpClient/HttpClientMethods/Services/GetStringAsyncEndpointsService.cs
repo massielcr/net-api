@@ -2,15 +2,14 @@
 {
     public class GetStringAsyncEndpointsService(IHttpClientFactory httpClientFactory, ILogger<GetStringAsyncEndpointsService> logger) : IGetStringAsyncEndpointsService
     {
-        private const string BaseUrl = "https://api.github.com";
-
+        //GetStringAsync(String)
         public async Task<string?> GetRepositoryReadmeStringAsync(string owner, string repo)
         {
+            string relativeUri = $"repos/{owner}/{repo}/readme";
+
             try
             {
                 HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
-
-                string relativeUri = $"repos/{owner}/{repo}/readme";
 
                 string? responseString = await httpClient.GetStringAsync(relativeUri);
 
@@ -39,13 +38,15 @@
             return null;            
         }
 
+
+        //GetStringAsync(Uri)
         public async Task<string?> GetRepositoryReadmeUriAsync(string owner, string repo)
         {
+            Uri uri = new($"repos/{owner}/{repo}/readme", UriKind.Relative);
+
             try
             {
                 HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
-
-                Uri uri = new($"{BaseUrl}/repos/{owner}/{repo}/readme");
 
                 string? responseString = await httpClient.GetStringAsync(uri);
 

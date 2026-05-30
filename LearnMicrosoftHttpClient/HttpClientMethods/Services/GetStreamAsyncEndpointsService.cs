@@ -4,6 +4,7 @@ namespace HttpClientMethods.Services
 {
     public class GetStreamAsyncEndpointsService(IHttpClientFactory httpClientFactory, ILogger<GetStreamAsyncEndpointsService> logger) : IGetStreamAsyncEndpointsService
     {
+        //GetStreamAsync(String)
         public async Task<Stream?> GetAvatarStringAsync(string username)
         {
             string relativeUri = $"users/{username}";
@@ -27,6 +28,7 @@ namespace HttpClientMethods.Services
                 }                
 
                 if (string.IsNullOrWhiteSpace(avatarUrl)) { return null; }
+
 
                 HttpClient imageClient = httpClientFactory.CreateClient();
 
@@ -54,9 +56,12 @@ namespace HttpClientMethods.Services
             return null;
         }
 
+
+        //GetStreamAsync(Uri)
         public async Task<Stream?> GetAvatarUriAsync(string username)
         {
             Uri uri = new($"users/{username}", UriKind.Relative);
+
             string? avatarUrl = null;
 
             try

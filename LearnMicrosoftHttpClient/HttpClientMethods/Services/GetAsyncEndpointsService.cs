@@ -65,14 +65,16 @@ namespace HttpClientMethods.Services
 
             try
             {
+                HttpClient httpClient = clientFactory.CreateClient("GitHub");
+
                 int counterPages = 0;
                 bool shouldContinue = true;
 
                 while (shouldContinue)
-                {
-                    HttpClient client = clientFactory.CreateClient("GitHub");
+                {                   
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                    using HttpResponseMessage response = await client.GetAsync(relativeUri, cancellationToken).ConfigureAwait(false);
+                    using HttpResponseMessage response = await httpClient.GetAsync(relativeUri, cancellationToken).ConfigureAwait(false);
 
                     response.EnsureSuccessStatusCode();
 
@@ -118,10 +120,10 @@ namespace HttpClientMethods.Services
         //GetAsync(String, HttpCompletionOption)
         public async Task<string?> GetRepositoryReadmeAsync(string owner, string repo, string contentType)
         {
+            string relativeUri = $"repos/{owner}/{repo}/readme";
+
             try
             {
-                string relativeUri = $"repos/{owner}/{repo}/readme";
-
                 HttpClient httpClient = clientFactory.CreateClient("GitHub");
 
                 HttpResponseMessage response = await httpClient.GetAsync(relativeUri).ConfigureAwait(false);
@@ -133,6 +135,7 @@ namespace HttpClientMethods.Services
                 using JsonDocument? readmeJson = await JsonSerializer.DeserializeAsync<JsonDocument>(responseStream).ConfigureAwait(false);
 
                 if (readmeJson == null || !readmeJson.RootElement.TryGetProperty("html_url", out var htmlUrlProp)) { return null; }
+
 
                 string? htmlUrl = htmlUrlProp.GetString();
 
@@ -251,13 +254,13 @@ namespace HttpClientMethods.Services
         //GetAsync(Uri)
         public async Task<int?> GetCommitsCountAsync(string owner, string repo)
         {
+            Uri uri = new($"repos/{owner}/{repo}/stats/participation", UriKind.Relative);
+
             try
             {
-                Uri uri = new($"repos/{owner}/{repo}/stats/participation", UriKind.Relative);
+                HttpClient httpClient = clientFactory.CreateClient("GitHub");
 
-                HttpClient client = clientFactory.CreateClient("GitHub");
-
-                using HttpResponseMessage response = await client.GetAsync(uri);
+                using HttpResponseMessage response = await httpClient.GetAsync(uri);
 
                 response.EnsureSuccessStatusCode();
 
@@ -408,7 +411,7 @@ namespace HttpClientMethods.Services
         //GetAsync(Uri, HttpCompletionOption, CancellationToken)
         public async IAsyncEnumerable<GitHubCommitDto> GetCommitsStreamAsync(string orgName, string repositoryName, int page, int perPage, int totalPages, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            HttpClient client = clientFactory.CreateClient("GitHub");
+            HttpClient httpClient = clientFactory.CreateClient("GitHub");
 
             while (page <= totalPages)
             {
@@ -422,7 +425,7 @@ namespace HttpClientMethods.Services
                 {
                     Uri uri = new($"repos/{orgName}/{repositoryName}/commits?page={page}&per_page={perPage}", UriKind.Relative);
 
-                    response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
 
                     if (!response.IsSuccessStatusCode)
                     {

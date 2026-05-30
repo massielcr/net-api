@@ -3,7 +3,8 @@
 namespace HttpClientMethods.Services
 {
     public class PostAsyncEndpointsService(IHttpClientFactory clientFactory, ILogger<PostAsyncEndpointsService> logger) : IPostAsyncEndpointsService
-    {       
+    {
+        //PostAsync(String, HttpContent) - JsonContent
         public async Task<bool> CreatePersonalRepositoryAsync(string name, string description, bool isPrivate, bool initialREADME, bool hasDownloads)
         {
             string uri = $"user/repos";
@@ -46,6 +47,7 @@ namespace HttpClientMethods.Services
             return false;            
         }
 
+        //PostAsync(String, HttpContent, CancellationToken) - StringContent
         public async Task<bool> CreateRepositoryIssuesAsync(string owner, string repo, string title, string body, int count, CancellationToken cancellationToken)
         {
             HttpClient httpClient = clientFactory.CreateClient("GitHub");
@@ -101,6 +103,8 @@ namespace HttpClientMethods.Services
             return false;
         }
 
+
+        //PostAsync(Uri, HttpContent) - StringContent
         public async Task<bool> CreateRepositoryIssueAsync(string owner, string repo, string title, byte[] imageBody)
         {
             string? assetName = await CreateRepositoryContentAssetAsync(owner, repo, title, imageBody);
@@ -155,6 +159,7 @@ namespace HttpClientMethods.Services
 
         }
 
+        //PostAsync(Uri, HttpContent, CancellationToken) - StringContent
         public async Task<bool> CreateRepositoryIssuesAsync(string owner, string repo, string title, byte[] imageBody, int count, CancellationToken cancellationToken)
         {
             string? assetName = await CreateRepositoryContentAssetAsync(owner, repo, title, imageBody, cancellationToken);
@@ -222,6 +227,8 @@ namespace HttpClientMethods.Services
             return false;
         }
 
+
+        //PutAsync(String, HttpContent, CancellationToken) - JsonContent
         public async Task<string?> CreateRepositoryContentAssetAsync(string owner, string repo, string title, byte[] imageBody, CancellationToken cancellationToken = default)
         {
             if (imageBody == null || imageBody.Length == 0)

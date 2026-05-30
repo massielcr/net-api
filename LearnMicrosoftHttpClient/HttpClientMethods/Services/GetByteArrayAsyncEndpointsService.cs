@@ -6,8 +6,7 @@ namespace HttpClientMethods.Services
 {
     public class GetByteArrayAsyncEndpointsService(IHttpClientFactory httpClientFactory, IFileService fileService, ILogger<GetByteArrayAsyncEndpointsService> logger) : IGetByteArrayAsyncEndpointsService
     {
-        private const string BaseUrl = "https://api.github.com";
-
+        //GetByteArrayAsync(String)
         public async Task<GitHubAvatar?> GetAvatarStringAsync(string username)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
@@ -29,6 +28,7 @@ namespace HttpClientMethods.Services
                 string? avatarUrl = avatarProp.GetString();
 
                 if (string.IsNullOrEmpty(avatarUrl)) { return null; }
+
 
                 HttpClient imageClient = httpClientFactory.CreateClient();
 
@@ -65,11 +65,13 @@ namespace HttpClientMethods.Services
             return null;
         }
 
+
+        //GetByteArrayAsync(Uri)
         public async Task<GitHubAvatar?> GetAvatarUriAsync(string username)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
 
-            Uri uri = new($"{BaseUrl}/users/{username}");
+            Uri uri = new($"users/{username}", UriKind.Relative);
 
             try
             {
@@ -86,6 +88,7 @@ namespace HttpClientMethods.Services
                 string? avatarUrl = avatarProp.GetString();
 
                 if (string.IsNullOrEmpty(avatarUrl)) { return null; }
+
 
                 HttpClient imageClient = httpClientFactory.CreateClient();
 
