@@ -38,9 +38,8 @@ builder.Services.AddScoped<IGetStringAsyncEndpointsService, GetStringAsyncEndpoi
 builder.Services.AddScoped<IPostAsyncEndpointsService, PostAsyncEndpointsService>();
 builder.Services.AddScoped<IPutAsyncEndpointsService, PutAsyncEndpointsService>();
 builder.Services.AddScoped<IPatchAsyncEndpoinsService, PatchAsyncEndpoinsService>();
+builder.Services.AddScoped<IDeleteAsyncEndpointsService, DeleteAsyncEndpointsService>();
 builder.Services.AddScoped<ISendAsyncEndpointsService, SendAsyncEndpointsService>();
-
-
 
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -82,6 +81,7 @@ app.MapGetStringAsyncEndpoints();
 app.MapPostAsyncEndpoints();
 app.MapPutAsyncEndpoints();
 app.MapPatchAsyncEndpoints();
+app.MapDeleteAsyncEndpoints();
 app.MapSendAsyncEndpoints();
 app.MapCancellationEndpoints();
 
