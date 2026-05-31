@@ -28,17 +28,24 @@ namespace HttpClientMethods.Services
 
             HttpRequestMessage imageRequest = new(HttpMethod.Head, avatarUrl);
 
-            HttpResponseMessage imageResponse = await imageClient.SendAsync(imageRequest);
-
-            if (!imageResponse.IsSuccessStatusCode) 
+            try
             {
-                logger.LogError($"Failed to get image headers for user {username}. Status code: {imageResponse.StatusCode}"); 
-                return headers;
+                HttpResponseMessage imageResponse = await imageClient.SendAsync(imageRequest);
+
+                if (!imageResponse.IsSuccessStatusCode)
+                {
+                    logger.LogError($"Failed to get image headers for user {username}. Status code: {imageResponse.StatusCode}");
+                    return headers;
+                }
+
+                foreach (var header in imageResponse.Headers)
+                {
+                    headers.Add($"{header.Key}: {string.Join(", ", header.Value)}");
+                }
             }
-
-            foreach (var header in imageResponse.Headers)
+            catch (Exception ex)
             {
-                headers.Add($"{header.Key}: {string.Join(", ", header.Value)}");
+                logger.LogError(ex, $"An error occurred while fetching image headers for user {username}.");
             }
 
             return headers;
@@ -54,25 +61,34 @@ namespace HttpClientMethods.Services
 
             HttpRequestMessage userRequest = new(HttpMethod.Options, uri);
 
-            using HttpResponseMessage userResponse = await httpClient.SendAsync(userRequest);
-
-            if (!userResponse.IsSuccessStatusCode)
+            try
             {
-                logger.LogError($"Failed to get user options for user {username}. Status code: {userResponse.StatusCode}");
-                return options;
-            }
+                using HttpResponseMessage userResponse = await httpClient.SendAsync(userRequest);
 
-            if (userResponse.Headers.Contains("Access-Control-Allow-Methods"))
-            {
-                var allowHeaderValues = userResponse.Headers.GetValues("Access-Control-Allow-Methods");
-                foreach (var val in allowHeaderValues)
+                if (!userResponse.IsSuccessStatusCode)
                 {
-                    options.UnionWith(val.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+                    logger.LogError($"Failed to get user options for user {username}. Status code: {userResponse.StatusCode}");
+                    return options;
                 }
+
+                if (userResponse.Headers.Contains("Access-Control-Allow-Methods"))
+                {
+                    var allowHeaderValues = userResponse.Headers.GetValues("Access-Control-Allow-Methods");
+                    foreach (var val in allowHeaderValues)
+                    {
+                        options.UnionWith(val.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching user options for user {username}.");
             }
 
             return options;
         }
+
+
 
         public async Task<(IEnumerable<string> Repos, double time)> GetRepositoriesAsync(string orgName, int page, int perPage, int totalPages, CancellationToken cancellationToken)
         {
@@ -205,20 +221,27 @@ namespace HttpClientMethods.Services
 
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, uri);
 
-            using HttpResponseMessage response = await httpClient.SendAsync(httpRequestMessage);
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                logger.LogError($"Failed to get avatar headers for user {username}. Status code: {response.StatusCode}");
-                return avatarUrl;
+                using HttpResponseMessage response = await httpClient.SendAsync(httpRequestMessage);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogError($"Failed to get avatar headers for user {username}. Status code: {response.StatusCode}");
+                    return avatarUrl;
+                }
+
+                JsonDocument jsonDocument = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+
+                if (jsonDocument.RootElement.TryGetProperty("avatar_url", out var avatar_url))
+                {
+                    avatarUrl = avatar_url.GetString();
+                }
             }
-
-            JsonDocument jsonDocument = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());            
-
-            if (jsonDocument.RootElement.TryGetProperty("avatar_url", out var avatar_url))
+            catch(Exception ex)
             {
-                avatarUrl = avatar_url.GetString();
-            }
+                logger.LogError(ex, $"An error occurred while fetching avatar headers for user {username}.");
+            }            
 
             return avatarUrl;
         }
