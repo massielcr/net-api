@@ -1,3 +1,33 @@
+@username = massielcr
+
+### HttpMethod.Head
+
+GET {{HostAddress}}/sendasync/users/{{username}}/avatar
+Accept: application/json
+
+### HttpMethod.Options
+
+GET {{HostAddress}}/sendasync/users/{{username}}/options
+Accept: application/json
+
+### HttpMethod.Query
+
+GET {{HostAddress}}/sendasync/orgs/dotnet/repos?page=1&perPage=5&totalPages=2&cid=1
+Accept: application/json
+
+### HttpMethod.Connect
+
+GET {{HostAddress}}/sendasync/orgs/dotnet/repos?page=1&perPage=5&totalPages=2&cid=1
+Accept: application/json
+
+### HttpMethod.Trace
+
+GET {{HostAddress}}/sendasync/orgs/dotnet/repos?page=1&perPage=5&totalPages=2&cid=1
+Accept: application/json
+
+
+
+
 ### GetAsync(String, CancellationToken) - CancellationToken
 
 GET {{HostAddress}}/sendasync/orgs/dotnet/repos?page=1&perPage=5&totalPages=2&cid=1

@@ -8,6 +8,30 @@ namespace HttpClientMethods.Endpoints
     {
         public static void MapSendAsyncEndpoints(this WebApplication app)
         {
+            app.MapGet("/sendasync/users/{username}/avatar", async ([FromRoute] string username,
+                                                                    [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
+            {
+
+                IEnumerable<string> headers = await sendEndpointsService.GetAvatarHeadersAsync(username);
+
+                return Results.Ok(headers.ToList());
+
+            })
+            .WithName("SendAsync_GetAvatarHeadersAsync");
+
+
+            app.MapGet("/sendasync/users/{username}/options", async ([FromRoute] string username,
+                                                                     [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
+            {
+
+                IEnumerable<string> options = await sendEndpointsService.GetUserOptionsAsync(username);
+
+                return Results.Ok(options.ToList());
+
+            })
+            .WithName("SendAsync_GetUserOptionsAsync");
+
+
             app.MapGet("/sendasync/orgs/{orgname}/repos", async ([FromRoute] string orgName,
                                                                  [FromQuery] int page, [FromQuery] int perPage, [FromQuery] int totalPages, [FromQuery(Name = "cid")] string connectionId,
                                                                  [FromServices] ISendAsyncEndpointsService sendEndpointsService, [FromServices] CancellationManager cancellationManager) =>
