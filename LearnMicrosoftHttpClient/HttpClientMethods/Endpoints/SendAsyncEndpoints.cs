@@ -1,4 +1,5 @@
-﻿using HttpClientMethods.Helpers;
+﻿using HttpClientMethods.Dtos;
+using HttpClientMethods.Helpers;
 using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -93,6 +94,55 @@ namespace HttpClientMethods.Endpoints
 
             })
              .WithName("SendAsync_GetRepositoriesParallelAsync");
+
+
+
+            //Get - Streaming endpoint example
+            app.MapGet("/sendasync/server/posters/{posterId}", async ([FromRoute] string posterId,
+                                                               [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
+            {
+                if (string.IsNullOrWhiteSpace(posterId))
+                {
+                    return Results.BadRequest("Invalid poster ID.");
+                }
+
+                PosterDto posterData = await sendEndpointsService.GetPosterServerAsync(posterId);
+
+                if (posterData == null)
+                {
+                    return Results.NotFound("Poster not found.");                    
+                }
+
+                return Results.Ok(posterData);
+            })
+            .WithName("SendAsync_Server_GetPoster")
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status200OK);
+
+
+            app.MapGet("/sendasync/client/posters/{posterId}", async ([FromRoute] string posterId,
+                                                                       [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
+            {
+                if (string.IsNullOrWhiteSpace(posterId))
+                {
+                    return Results.BadRequest("Invalid poster ID.");
+                }
+
+                PosterDto? poster = await sendEndpointsService.GetPosterClientAsync(posterId);
+
+                if (poster == null)
+                {
+                    return Results.NotFound("Poster not found.");
+                }
+
+                return Results.Ok(poster);
+            })
+            .WithName("SendAsync_Client_GetPoster")
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status200OK);
+
         }
     }
 }

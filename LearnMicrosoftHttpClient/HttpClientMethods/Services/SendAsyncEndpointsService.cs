@@ -1,5 +1,6 @@
-﻿using System.Diagnostics;
-using System.Reflection.PortableExecutable;
+﻿using HttpClientMethods.Dtos;
+using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace HttpClientMethods.Services
@@ -245,5 +246,80 @@ namespace HttpClientMethods.Services
 
             return avatarUrl;
         }
+
+
+        #region Streams
+
+        public async Task<PosterDto> GetPosterServerAsync(string posterId)
+        {
+            var Random = new Random();
+
+            var generatedData = new byte[1024 * 1024 * 5]; // 5 MB of random data
+            Random.NextBytes(generatedData);
+
+            return new PosterDto(posterId, "Generated poster", generatedData);
+        }
+
+        public async Task<PosterDto?> GetPosterClientAsync(string posterId)
+        {
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            Uri serverPosterUri = new($"http://localhost:5099/sendasync/server/posters/{posterId}", UriKind.Absolute);
+
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, serverPosterUri);
+
+            httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            try
+            {
+                using HttpResponseMessage respone = await _httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead);
+
+                if (!respone.IsSuccessStatusCode)
+                {
+                    logger.LogError($"Failed to get poster with id {posterId}. Status code: {respone.StatusCode}");
+                    return null;
+                }
+
+                using Stream responseStream = await respone.Content.ReadAsStreamAsync();
+
+                PosterDto? poster = await JsonSerializer.DeserializeAsync<PosterDto>(responseStream, options);
+
+                return poster;
+            }
+            catch(InvalidOperationException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching poster with id {posterId}.");
+                
+            }
+            catch(UriFormatException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching poster with id {posterId}.");
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching poster with id {posterId}.");
+            }
+            catch(OperationCanceledException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching poster with id {posterId}.");
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching poster with id {posterId}.");
+            }
+
+            return null;
+        }
+
+        public async Task<bool> CreatePosterAsync(PosterDto poster)
+        {
+
+
+            return false;
+        }
+
+        #endregion
+
+
     }
 }

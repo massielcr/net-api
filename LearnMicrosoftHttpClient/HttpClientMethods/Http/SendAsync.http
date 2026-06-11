@@ -20,3 +20,13 @@ Accept: application/json
 
 GET {{HostAddress}}/sendasync/orgs/dotnet/repos/parallel?page=1&perPage=5&totalPages=2&cid=1
 Accept: application/json
+
+
+### GetAsync(String, CancellationToken) - StreamCancellationToken
+GET {{HostAddress}}/sendasync/server/posters/test
+Accept: application/octet-stream
+
+
+### GetAsync(String, CancellationToken) - StreamCancellationToken
+GET {{HostAddress}}/sendasync/client/posters/test
+Accept: application/octet-stream
