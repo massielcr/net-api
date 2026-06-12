@@ -17,6 +17,7 @@ namespace HttpClientMethods.Services
         //Stream GetStreamAsync(Uri uri, CancellationToken cancellationToken)
         Task<PosterDto> GetPosterServerAsync(string posterId);
         Task<PosterDto?> GetPosterClientAsync(string posterId);
-        Task<bool> CreatePosterAsync(PosterDto poster);
+        Task<bool> CreatePosterServerAsync(PosterDto poster);
+        Task<string> CreatePosterClientAsync(PosterDto poster);
     }
 }

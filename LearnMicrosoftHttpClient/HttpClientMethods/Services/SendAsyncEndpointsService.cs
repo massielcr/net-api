@@ -1,6 +1,7 @@
 ﻿using HttpClientMethods.Dtos;
 using System.Diagnostics;
 using System.Net.Http.Headers;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 
 namespace HttpClientMethods.Services
@@ -239,10 +240,10 @@ namespace HttpClientMethods.Services
                     avatarUrl = avatar_url.GetString();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(ex, $"An error occurred while fetching avatar headers for user {username}.");
-            }            
+            }
 
             return avatarUrl;
         }
@@ -286,12 +287,12 @@ namespace HttpClientMethods.Services
 
                 return poster;
             }
-            catch(InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 logger.LogError(ex, $"An error occurred while fetching poster with id {posterId}.");
-                
+
             }
-            catch(UriFormatException ex)
+            catch (UriFormatException ex)
             {
                 logger.LogError(ex, $"An error occurred while fetching poster with id {posterId}.");
             }
@@ -299,7 +300,7 @@ namespace HttpClientMethods.Services
             {
                 logger.LogError(ex, $"An error occurred while fetching poster with id {posterId}.");
             }
-            catch(OperationCanceledException ex)
+            catch (OperationCanceledException ex)
             {
                 logger.LogError(ex, $"An error occurred while fetching poster with id {posterId}.");
             }
@@ -311,11 +312,56 @@ namespace HttpClientMethods.Services
             return null;
         }
 
-        public async Task<bool> CreatePosterAsync(PosterDto poster)
+        public async Task<bool> CreatePosterServerAsync(PosterDto poster)
         {
+            if (poster.Data == null)
+            {
+                logger.LogError("Invalid poster data provided for creation.");
+                return false;
+            }
 
+            poster.Id = Guid.NewGuid().ToString();
 
-            return false;
+            return true;
+        }
+
+        public async Task<string> CreatePosterClientAsync(PosterDto poster)
+        {
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            Uri uri = new($"http://localhost:5099/sendasync/server/posters", UriKind.Absolute);
+
+            try
+            {
+                using MemoryStream memoryStream = new();
+                await JsonSerializer.SerializeAsync(memoryStream, poster, options);
+
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                using StreamContent streamContent = new(memoryStream);
+                streamContent.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
+
+                using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
+                httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                httpRequestMessage.Content = streamContent;
+
+                using HttpResponseMessage response = await _httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogError($"Failed to create poster. Status code: {response.StatusCode}");
+                    return string.Empty;    
+                }
+
+                return response.Headers.Location?.ToString() ?? string.Empty;
+
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while preparing poster data for creation.");
+                return string.Empty;
+
+            }
         }
 
         #endregion

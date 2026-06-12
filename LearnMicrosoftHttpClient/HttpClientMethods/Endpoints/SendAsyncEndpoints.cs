@@ -97,7 +97,9 @@ namespace HttpClientMethods.Endpoints
 
 
 
-            //Get - Streaming endpoint example
+            #region Streams
+
+            //GET SERVER
             app.MapGet("/sendasync/server/posters/{posterId}", async ([FromRoute] string posterId,
                                                                [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
             {
@@ -121,6 +123,7 @@ namespace HttpClientMethods.Endpoints
             .Produces(StatusCodes.Status200OK);
 
 
+            //GET CLIENT
             app.MapGet("/sendasync/client/posters/{posterId}", async ([FromRoute] string posterId,
                                                                        [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
             {
@@ -143,6 +146,56 @@ namespace HttpClientMethods.Endpoints
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status200OK);
 
+
+            //POST SERVER
+            app.MapPost("/sendasync/server/posters", async ([FromBody] PosterDto poster,
+                                                            [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
+            {
+                if (string.IsNullOrWhiteSpace(poster.Description))
+                {
+                    return Results.BadRequest("Invalid poster.");
+                }
+
+                bool created = await sendEndpointsService.CreatePosterServerAsync(poster);
+
+                if (!created)
+                {
+                    return Results.Problem("Failed to create poster.");
+                }
+
+                return Results.Created($"/sendasync/client/posters/{poster.Id}", null);
+            })
+            .WithName("SendAsync_Server_CreatePoster")
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status200OK);
+
+
+            //POST CLIENT
+            app.MapPost("/sendasync/client/posters", async ([FromBody] PosterDto poster,
+                                                            [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
+            {
+                Random random = new();
+                byte[] data = new byte[10 * 1024 * 1024]; // 10 MB
+                random.NextBytes(data);
+
+                poster.Data = data;
+
+                string posterUri = await sendEndpointsService.CreatePosterClientAsync(poster);
+
+                if (string.IsNullOrEmpty(posterUri))
+                {
+                    return Results.Problem("Failed to create poster.");
+                }
+
+                return Results.Created(posterUri, null);
+            })
+            .WithName("SendAsync_Client_CreatePoster")
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status200OK);
+
+            #endregion
         }
     }
 }
