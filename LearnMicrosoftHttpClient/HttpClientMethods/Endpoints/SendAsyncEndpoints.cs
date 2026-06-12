@@ -65,7 +65,6 @@ namespace HttpClientMethods.Endpoints
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status200OK);
 
-
             //GET CLIENT
             app.MapGet("/sendasync/client/posters/{posterId}", async ([FromRoute] string posterId,
                                                                        [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
@@ -95,7 +94,6 @@ namespace HttpClientMethods.Endpoints
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status200OK);
 
-
             //POST SERVER
             app.MapPost("/sendasync/server/posters", async ([FromBody] PosterDto? poster,
                                                             [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
@@ -122,7 +120,6 @@ namespace HttpClientMethods.Endpoints
             .WithName("SendAsync_Server_CreatePoster")
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
-
 
             //POST CLIENT
             app.MapPost("/sendasync/client/posters", async ([FromBody] PosterDto? poster,
@@ -218,7 +215,6 @@ namespace HttpClientMethods.Endpoints
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status200OK, typeof(PosterDto));
 
-
             //COMPRESSION CREATE SERVER
             app.MapPost("/sendasync/server/posters/compression", async ([FromBody] PosterDto? poster,
                                                                         [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
@@ -245,7 +241,6 @@ namespace HttpClientMethods.Endpoints
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status201Created);
-
 
             //COMPRESSION CREATE CLIENT
             app.MapPost("/sendasync/client/posters/compression", async ([FromBody] PosterDto? poster,
