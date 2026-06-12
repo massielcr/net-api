@@ -20,6 +20,15 @@ builder.Services.AddHttpClient("GitHub", client =>
     }
 });
 
+builder.Services.AddHttpClient("Local", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5099");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Brotli
+});
+
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);

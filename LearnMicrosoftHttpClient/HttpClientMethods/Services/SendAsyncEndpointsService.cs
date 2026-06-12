@@ -364,8 +364,44 @@ namespace HttpClientMethods.Services
             }
         }
 
+        public async Task<PosterDto?> GetCompressedPosterServerAsync(string posterId)
+        {
+            var Random = new Random();
+
+            byte[] generatedData = new byte[1024 * 1024 * 5]; // 5 MB of random data
+            Random.NextBytes(generatedData);
+
+            return new PosterDto(posterId, "Generated poster", generatedData);
+        }
+
+        public async Task<PosterDto?> GetCompressedPosterClientAsync(string posterId)
+        {
+            HttpClient httpClient = httpClientFactory.CreateClient("Local");
+
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            Uri uri = new($"sendasync/server/posters/{posterId}", UriKind.Relative);            
+
+            HttpRequestMessage request = new(HttpMethod.Get, uri);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+
+            using HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogError($"Failed to get compressed poster with id {posterId}. Status code: {response.StatusCode}");
+                return null;
+            }
+
+            using Stream responseStream = await response.Content.ReadAsStreamAsync();
+
+            PosterDto? posterDto = await JsonSerializer.DeserializeAsync<PosterDto>(responseStream, options);
+
+            return posterDto;
+        }
+
+
         #endregion
-
-
     }
 }

@@ -26,10 +26,10 @@ Accept: application/json
 GET {{HostAddress}}/sendasync/server/posters/test HTTP/2
 Accept: application/octet-stream
 
-
 ### GetAsync(String, CancellationToken) - StreamCancellationToken
 GET {{HostAddress}}/sendasync/client/posters/test HTTP/2
 Accept: application/octet-stream
+
 
 ### GetAsync(String, CancellationToken) - StreamCancellationToken
 POST {{HostAddress}}/sendasync/server/posters HTTP/2
@@ -39,7 +39,6 @@ Content-Type: application/json
   "description": "Test Poster"
 }
 
-
 ### GetAsync(String, CancellationToken) - StreamCancellationToken
 POST {{HostAddress}}/sendasync/client/posters HTTP/2
 Accept: application/json
@@ -48,3 +47,10 @@ Content-Type: application/json
   "description": "Test Poster"
 }
 
+### GetAsync(String, CancellationToken) - StreamCancellationToken
+GET {{HostAddress}}/sendasync/server/posters/test/compression HTTP/2
+Accept: application/octet-stream
+
+### GetAsync(String, CancellationToken) - StreamCancellationToken
+GET {{HostAddress}}/sendasync/client/posters/test/compression HTTP/2
+Accept: application/octet-stream

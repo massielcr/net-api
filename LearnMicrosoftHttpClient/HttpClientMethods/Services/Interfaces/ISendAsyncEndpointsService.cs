@@ -19,5 +19,7 @@ namespace HttpClientMethods.Services
         Task<PosterDto?> GetPosterClientAsync(string posterId);
         Task<bool> CreatePosterServerAsync(PosterDto poster);
         Task<string> CreatePosterClientAsync(PosterDto poster);
+        Task<PosterDto?> GetCompressedPosterServerAsync(string posterId);
+        Task<PosterDto?> GetCompressedPosterClientAsync(string posterId);
     }
 }

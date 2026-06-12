@@ -1,7 +1,9 @@
 ﻿using HttpClientMethods.Dtos;
 using HttpClientMethods.Helpers;
 using HttpClientMethods.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace HttpClientMethods.Endpoints
 {
@@ -131,8 +133,13 @@ namespace HttpClientMethods.Endpoints
                 {
                     return Results.BadRequest("Invalid poster ID.");
                 }
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
 
                 PosterDto? poster = await sendEndpointsService.GetPosterClientAsync(posterId);
+
+                stopwatch.Stop();
+                Console.WriteLine($"Time taken to fetch compressed poster: {stopwatch.ElapsedMilliseconds} ms");
 
                 if (poster == null)
                 {
@@ -191,6 +198,57 @@ namespace HttpClientMethods.Endpoints
                 return Results.Created(posterUri, null);
             })
             .WithName("SendAsync_Client_CreatePoster")
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status200OK);
+
+            //COMPRESSION SERVER
+            app.MapGet("/sendasync/server/posters/{posterId}/compression", async ([FromRoute] string posterId,
+                                                                                  [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
+            {
+                if (string.IsNullOrEmpty(posterId))
+                {
+                    return Results.BadRequest("Invalid poster ID.");
+                }
+
+                PosterDto? poster = await sendEndpointsService.GetCompressedPosterServerAsync(posterId);
+
+                if (poster == null)
+                {
+                    return Results.NotFound("Poster not found.");
+                }
+                return Results.Ok(poster);
+            })
+            .WithName("SendAsync_Server_GetPosterGZip")
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status200OK);
+
+            //COMPRESSION CLIENT
+            app.MapGet("/sendasync/client/posters/{posterId}/compression", async ([FromRoute] string posterId,
+                                                                                  [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
+            {
+                if (string.IsNullOrEmpty(posterId))
+                {
+                    return Results.BadRequest("Invalid poster ID.");
+                }
+
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
+                PosterDto? poster = await sendEndpointsService.GetCompressedPosterClientAsync(posterId);
+
+                stopwatch.Stop();
+                Console.WriteLine($"Time taken to fetch compressed poster: {stopwatch.ElapsedMilliseconds} ms");
+
+                if (poster == null)
+                {
+                    return Results.NotFound("Poster not found.");
+                }
+
+                return Results.Ok(poster);
+            })
+            .WithName("SendAsync_Client_GetPosterGZip")
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status200OK);
