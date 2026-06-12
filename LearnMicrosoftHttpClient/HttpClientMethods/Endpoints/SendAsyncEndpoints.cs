@@ -3,6 +3,7 @@ using HttpClientMethods.Helpers;
 using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.IO.Compression;
 
 namespace HttpClientMethods.Endpoints
 {
@@ -152,27 +153,36 @@ namespace HttpClientMethods.Endpoints
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
 
+
+
             //COMPRESSION SERVER
             app.MapGet("/sendasync/server/posters/{posterId}/compression", async ([FromRoute] string posterId,
-                                                                                  [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
+                                                                                  [FromServices] ISendAsyncEndpointsService sendEndpointsService,
+                                                                                  HttpContext httpContext) =>
             {
                 if (string.IsNullOrEmpty(posterId))
                 {
                     return Results.BadRequest("Invalid poster ID.");
                 }
 
-                PosterDto? poster = await sendEndpointsService.GetCompressedPosterServerAsync(posterId);
+                MemoryStream? posterStream = await sendEndpointsService.GetCompressedPosterServerAsync(posterId);
 
-                if (poster == null)
+                if (posterStream == null)
                 {
                     return Results.NotFound("Poster not found.");
                 }
-                return Results.Ok(poster);
+
+                httpContext.Response.Headers.ContentEncoding = "gzip";
+
+                return Results.File(
+                        fileStream: posterStream,
+                        contentType: "application/json"
+                    );
             })
             .WithName("SendAsync_Server_GetPosterGZip")
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
-            .Produces(StatusCodes.Status200OK);
+            .Produces(StatusCodes.Status200OK, typeof(PosterDto), "application/json");
 
             //COMPRESSION CLIENT
             app.MapGet("/sendasync/client/posters/{posterId}/compression", async ([FromRoute] string posterId,
@@ -201,7 +211,7 @@ namespace HttpClientMethods.Endpoints
             .WithName("SendAsync_Client_GetPosterGZip")
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
-            .Produces(StatusCodes.Status200OK);
+            .Produces(StatusCodes.Status200OK, typeof(PosterDto));
 
             #endregion
 

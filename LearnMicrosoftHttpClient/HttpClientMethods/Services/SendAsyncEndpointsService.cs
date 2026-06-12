@@ -1,5 +1,6 @@
 ﻿using HttpClientMethods.Dtos;
 using System.Diagnostics;
+using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
@@ -219,7 +220,6 @@ namespace HttpClientMethods.Services
             {
                 using MemoryStream memoryStream = new();
                 await JsonSerializer.SerializeAsync(memoryStream, poster, options);
-
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
                 using StreamContent streamContent = new(memoryStream);
@@ -265,14 +265,31 @@ namespace HttpClientMethods.Services
         }
 
 
-        public async Task<PosterDto?> GetCompressedPosterServerAsync(string posterId)
+        public async Task<MemoryStream?> GetCompressedPosterServerAsync(string posterId)
         {
             var Random = new Random();
 
             byte[] generatedData = new byte[1024 * 1024 * 5]; // 5 MB of random data
             Random.NextBytes(generatedData);
 
-            return new PosterDto(posterId, "Generated poster", generatedData);
+            PosterDto posterDto = new(posterId, "Generated poster", generatedData);
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            using MemoryStream memoryStream = new();
+            await JsonSerializer.SerializeAsync(memoryStream, posterDto, options);
+            memoryStream.Position = 0;
+
+            MemoryStream compressedStream = new();
+
+            await using (GZipStream gZipStream = new(compressedStream, CompressionMode.Compress, leaveOpen: true))
+            {
+                await memoryStream.CopyToAsync(gZipStream);
+                await gZipStream.FlushAsync();
+            }           
+
+            compressedStream.Position = 0;
+
+            return compressedStream;
         }
 
         public async Task<PosterDto?> GetCompressedPosterClientAsync(string posterId)
@@ -281,13 +298,12 @@ namespace HttpClientMethods.Services
 
             JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
 
-            Uri uri = new($"sendasync/server/posters/{posterId}", UriKind.Relative);
+            Uri uri = new($"sendasync/server/posters/{posterId}/compression", UriKind.Relative);
 
             try
             {
                 HttpRequestMessage request = new(HttpMethod.Get, uri);
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
                 using HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
@@ -326,6 +342,85 @@ namespace HttpClientMethods.Services
 
             return null;
         }
+
+
+        public async Task<bool> CreateCompressedPosterServerAsync(PosterDto poster)
+        {
+            if (poster.Data == null)
+            {
+                logger.LogError("Invalid poster data provided for creation.");
+                return false;
+            }
+
+            poster.Id = Guid.NewGuid().ToString();
+
+            return true;
+        }
+
+        public async Task<bool> CreateCompressedPosterClientAsync(PosterDto poster)
+        {
+            HttpClient httpClient = httpClientFactory.CreateClient("Local");
+
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            Uri uri = new($"sendasync/client/posters/compressed", UriKind.Relative);
+
+            try
+            {
+                using MemoryStream memoryStream  = new();
+                await JsonSerializer.SerializeAsync(memoryStream, poster, options);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                using MemoryStream compressedMemoryStream = new();
+                using GZipStream gzipStream = new(compressedMemoryStream, CompressionMode.Compress);
+                memoryStream.CopyTo(gzipStream);
+                gzipStream.Flush();
+                compressedMemoryStream.Position = 0;
+
+                using StreamContent streamContent = new(compressedMemoryStream);
+                streamContent.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
+                streamContent.Headers.ContentEncoding.Add("gzip");
+
+                using HttpRequestMessage request = new(HttpMethod.Post, uri);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+
+                request.Content = streamContent;
+
+                using HttpResponseMessage response = await httpClient.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogError($"Failed to create compressed poster. Status code: {response.StatusCode}");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (InvalidOperationException ex)
+            {
+                logger.LogError(ex, "An error occurred while creating compressed poster.");
+            }
+            catch (UriFormatException ex)
+            {
+                logger.LogError(ex, "An error occurred while creating compressed poster.");
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, "An error occurred while creating compressed poster.");
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogError(ex, "An error occurred while creating compressed poster.");
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, "An error occurred while creating compressed poster.");
+            }
+
+            return false;
+        }
+
 
         #endregion
 

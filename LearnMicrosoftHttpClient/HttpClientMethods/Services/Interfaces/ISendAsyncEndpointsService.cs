@@ -21,8 +21,11 @@ namespace HttpClientMethods.Services
         Task<bool> CreatePosterServerAsync(PosterDto poster);
         Task<string> CreatePosterClientAsync(PosterDto poster);
 
-        Task<PosterDto?> GetCompressedPosterServerAsync(string posterId);
+        Task<MemoryStream?> GetCompressedPosterServerAsync(string posterId);
         Task<PosterDto?> GetCompressedPosterClientAsync(string posterId);
+
+        Task<bool> CreateCompressedPosterServerAsync(PosterDto poster);
+        Task<bool> CreateCompressedPosterClientAsync(PosterDto poster);
 
         #endregion
 

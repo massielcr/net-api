@@ -25,9 +25,9 @@ builder.Services.AddHttpClient("Local", client =>
     client.BaseAddress = new Uri("http://localhost:5099");
 })
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-{
-    AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Brotli
-});
+ {
+     AutomaticDecompression = System.Net.DecompressionMethods.GZip
+ });
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {

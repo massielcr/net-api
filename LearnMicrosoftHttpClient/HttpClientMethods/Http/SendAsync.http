@@ -39,11 +39,11 @@ Content-Type: application/json
 
 ### STREAMS - GET - COMPRESSION
 GET {{HostAddress}}/sendasync/server/posters/test/compression HTTP/2
-Accept: application/octet-stream
+Accept: application/json
 
 ### STREAMS - GET - COMPRESSION
 GET {{HostAddress}}/sendasync/client/posters/test/compression HTTP/2
-Accept: application/octet-stream
+Accept: application/json
 
 
 
