@@ -13,7 +13,7 @@ namespace HttpClientMethods.Services
         #endregion
 
 
-        #region Streams
+        #region STREAMS
 
         Task<PosterDto> GetPosterServerAsync(string posterId);
         Task<PosterDto?> GetPosterClientAsync(string posterId);
@@ -30,8 +30,12 @@ namespace HttpClientMethods.Services
         #endregion
 
 
+        #region OTHERS
+
         Task<(IEnumerable<string> Repos, double time)> GetRepositoriesAsync(string orgName, int page, int perPage, int totalPages, CancellationToken cancellationToken);
 
         Task<(IEnumerable<string> Repos, double time)> GetRepositoriesParallelAsync(string orgName, int page, int perPage, int totalPages, CancellationToken cancellationToken);
+
+        #endregion
     }
 }

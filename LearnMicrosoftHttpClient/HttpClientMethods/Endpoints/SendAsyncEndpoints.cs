@@ -3,7 +3,6 @@ using HttpClientMethods.Helpers;
 using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using System.IO.Compression;
 
 namespace HttpClientMethods.Endpoints
 {
@@ -41,7 +40,7 @@ namespace HttpClientMethods.Endpoints
             #endregion
 
 
-            #region Streams
+            #region STREAMS
 
             //GET SERVER
             app.MapGet("/sendasync/server/posters/{posterId}", async ([FromRoute] string posterId,

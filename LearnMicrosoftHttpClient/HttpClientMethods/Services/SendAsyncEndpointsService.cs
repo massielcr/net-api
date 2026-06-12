@@ -129,7 +129,7 @@ namespace HttpClientMethods.Services
         #endregion
 
 
-        #region Streams
+        #region STREAMS
 
         public async Task<PosterDto> GetPosterServerAsync(string posterId)
         {
@@ -426,6 +426,8 @@ namespace HttpClientMethods.Services
         #endregion
 
 
+        #region OTHERS
+
         public async Task<(IEnumerable<string> Repos, double time)> GetRepositoriesAsync(string orgName, int page, int perPage, int totalPages, CancellationToken cancellationToken)
         {
             List<string> result = [];
@@ -542,5 +544,7 @@ namespace HttpClientMethods.Services
 
             return (result, time.Elapsed.TotalMilliseconds);
         }
+
+        #endregion
     }
 }
