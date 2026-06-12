@@ -357,24 +357,28 @@ namespace HttpClientMethods.Services
             return true;
         }
 
-        public async Task<bool> CreateCompressedPosterClientAsync(PosterDto poster)
+        public async Task<string> CreateCompressedPosterClientAsync(PosterDto poster)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("Local");
 
             JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
 
-            Uri uri = new($"sendasync/client/posters/compressed", UriKind.Relative);
+            Uri uri = new($"sendasync/server/posters/compression", UriKind.Relative);
 
             try
             {
                 using MemoryStream memoryStream  = new();
                 await JsonSerializer.SerializeAsync(memoryStream, poster, options);
-                memoryStream.Seek(0, SeekOrigin.Begin);
+                memoryStream.Position = 0;
 
                 using MemoryStream compressedMemoryStream = new();
-                using GZipStream gzipStream = new(compressedMemoryStream, CompressionMode.Compress);
-                memoryStream.CopyTo(gzipStream);
-                gzipStream.Flush();
+
+                using (GZipStream gzipStream = new(compressedMemoryStream, CompressionMode.Compress, leaveOpen: true))
+                {
+                    await memoryStream.CopyToAsync(gzipStream);
+                    await gzipStream.FlushAsync();
+                };                
+
                 compressedMemoryStream.Position = 0;
 
                 using StreamContent streamContent = new(compressedMemoryStream);
@@ -383,8 +387,6 @@ namespace HttpClientMethods.Services
 
                 using HttpRequestMessage request = new(HttpMethod.Post, uri);
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-
                 request.Content = streamContent;
 
                 using HttpResponseMessage response = await httpClient.SendAsync(request);
@@ -392,10 +394,9 @@ namespace HttpClientMethods.Services
                 if (!response.IsSuccessStatusCode)
                 {
                     logger.LogError($"Failed to create compressed poster. Status code: {response.StatusCode}");
-                    return false;
                 }
 
-                return true;
+                return response.Headers.Location?.ToString() ?? string.Empty;
             }
             catch (InvalidOperationException ex)
             {
@@ -418,7 +419,7 @@ namespace HttpClientMethods.Services
                 logger.LogError(ex, "An error occurred while creating compressed poster.");
             }
 
-            return false;
+            return string.Empty;
         }
 
 

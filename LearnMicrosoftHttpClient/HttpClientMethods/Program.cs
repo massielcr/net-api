@@ -6,6 +6,9 @@ using HttpClientMethods.Services.Interfaces;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
+builder.Services.AddRequestDecompression();
+
+
 builder.Services.AddHttpClient("GitHub", client =>
 {
     client.BaseAddress = new Uri("https://api.github.com");
@@ -25,9 +28,9 @@ builder.Services.AddHttpClient("Local", client =>
     client.BaseAddress = new Uri("http://localhost:5099");
 })
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
- {
-     AutomaticDecompression = System.Net.DecompressionMethods.GZip
- });
+{
+    AutomaticDecompression = System.Net.DecompressionMethods.GZip
+});
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -36,6 +39,11 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 builder.Services.AddHttpClient();
+
+
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
+
 
 builder.Services.AddSingleton<CancellationManager>();
 builder.Services.AddSingleton<IFileService, FileService>();
@@ -51,18 +59,19 @@ builder.Services.AddScoped<IDeleteAsyncEndpointsService, DeleteAsyncEndpointsSer
 builder.Services.AddScoped<ISendAsyncEndpointsService, SendAsyncEndpointsService>();
 
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+
 
 
 var app = builder.Build();
+
+app.UseRequestDecompression();
+
+app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
-app.UseStaticFiles();
 
 app.UseExceptionHandler(exceptionApp =>
 {
@@ -93,7 +102,6 @@ app.MapPatchAsyncEndpoints();
 app.MapDeleteAsyncEndpoints();
 app.MapSendAsyncEndpoints();
 app.MapCancellationEndpoints();
-
 
 
 app.Run();

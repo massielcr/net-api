@@ -140,7 +140,13 @@ namespace HttpClientMethods.Endpoints
 
                 poster.Data = data;
 
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
                 string posterUri = await sendEndpointsService.CreatePosterClientAsync(poster);
+
+                stopwatch.Stop();
+                logger.LogInformation("Time taken to create poster: {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
 
                 if (string.IsNullOrEmpty(posterUri))
                 {
@@ -213,9 +219,74 @@ namespace HttpClientMethods.Endpoints
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status200OK, typeof(PosterDto));
 
+
+            //COMPRESSION CREATE SERVER
+            app.MapPost("/sendasync/server/posters/compression", async ([FromBody] PosterDto? poster,
+                                                                        [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
+            {
+                if (poster == null)
+                {
+                    return Results.BadRequest("Invalid poster - poster is required.");
+                }
+                if (string.IsNullOrWhiteSpace(poster.Description))
+                {
+                    return Results.BadRequest("Invalid poster - description is required.");
+                }
+
+                bool created = await sendEndpointsService.CreateCompressedPosterServerAsync(poster);
+
+                if (!created)
+                {
+                    return Results.Problem("Failed to create poster.");
+                }
+
+                return Results.Created($"/sendasync/server/posters/{poster.Id}/compression", null);
+            })
+            .WithName("SendAsync_Server_CreatePosterGZip")
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status201Created);
+
+
+            //COMPRESSION CREATE CLIENT
+            app.MapPost("/sendasync/client/posters/compression", async ([FromBody] PosterDto? poster,
+                                                                        [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
+            {
+                if (poster == null)
+                {
+                    return Results.BadRequest("Invalid poster - poster is required.");
+                }
+
+                Random random = new();
+                byte[] data = new byte[10 * 1024 * 1024]; // 10 MB
+                random.NextBytes(data);
+
+                poster.Data = data;
+
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
+                string posterUri = await sendEndpointsService.CreateCompressedPosterClientAsync(poster);
+
+                stopwatch.Stop();
+                logger.LogInformation("Time taken to create compressed poster: {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
+
+                if (string.IsNullOrWhiteSpace(posterUri))
+                {
+                    return Results.Problem("Failed to create poster.");
+                }
+
+                return Results.Created(posterUri, null);
+            })
+            .WithName("SendAsync_Client_CreatePosterGZip")
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status201Created);
+
             #endregion
 
 
+            #region OTHERS
 
             app.MapGet("/sendasync/orgs/{orgname}/repos", async ([FromRoute] string orgName,
                                                                  [FromQuery] int page, [FromQuery] int perPage, [FromQuery] int totalPages, [FromQuery(Name = "cid")] string connectionId,
@@ -264,6 +335,8 @@ namespace HttpClientMethods.Endpoints
 
             })
              .WithName("SendAsync_GetRepositoriesParallelAsync");
+
+            #endregion
         }
     }
 }
