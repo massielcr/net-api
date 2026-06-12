@@ -1,7 +1,6 @@
 ﻿using HttpClientMethods.Dtos;
 using HttpClientMethods.Helpers;
 using HttpClientMethods.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -11,10 +10,15 @@ namespace HttpClientMethods.Endpoints
     {
         public static void MapSendAsyncEndpoints(this WebApplication app)
         {
+            var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger("SendAsyncEndpoints");
+
+            #region Specific HTTP Methods
+
+            //HEAD
             app.MapGet("/sendasync/users/{username}/avatar", async ([FromRoute] string username,
                                                                     [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
             {
-
                 IEnumerable<string> headers = await sendEndpointsService.GetAvatarHeadersAsync(username);
 
                 return Results.Ok(headers.ToList());
@@ -22,11 +26,10 @@ namespace HttpClientMethods.Endpoints
             })
             .WithName("SendAsync_GetAvatarHeadersAsync");
 
-
+            //OPTIONS
             app.MapGet("/sendasync/users/{username}/options", async ([FromRoute] string username,
                                                                      [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
             {
-
                 IEnumerable<string> options = await sendEndpointsService.GetUserOptionsAsync(username);
 
                 return Results.Ok(options.ToList());
@@ -34,69 +37,7 @@ namespace HttpClientMethods.Endpoints
             })
             .WithName("SendAsync_GetUserOptionsAsync");
 
-
-            app.MapGet("/sendasync/orgs/{orgname}/repos", async ([FromRoute] string orgName,
-                                                                 [FromQuery] int page, [FromQuery] int perPage, [FromQuery] int totalPages, [FromQuery(Name = "cid")] string connectionId,
-                                                                 [FromServices] ISendAsyncEndpointsService sendEndpointsService, [FromServices] CancellationManager cancellationManager) =>
-            {
-                CancellationToken token = cancellationManager.GetToken(connectionId, 30);
-
-                try
-                {
-                    (IEnumerable<string> repos, double time) = await sendEndpointsService.GetRepositoriesAsync(orgName, page, perPage, totalPages, token);
-
-                    if (repos.Any())
-                    {
-                        return Results.Ok(new
-                        {
-                            repos,
-                            time,
-                        });
-                    }
-                    else
-                    {
-                        return Results.Problem("No repos");
-                    }
-                }
-                finally
-                {
-                    cancellationManager.Cancel(connectionId);
-                }
-
-            })
-             .WithName("SendAsync_GetRepositoriesAsync");
-
-            app.MapGet("/sendasync/orgs/{orgname}/repos/parallel", async ([FromRoute] string orgName,
-                                                                          [FromQuery] int page, [FromQuery] int perPage, [FromQuery] int totalPages, [FromQuery(Name = "cid")] string connectionId,
-                                                                          [FromServices] ISendAsyncEndpointsService sendEndpointsService, [FromServices] CancellationManager cancellationManager) =>
-            {
-                CancellationToken token = cancellationManager.GetToken(connectionId, 30);
-
-                try
-                {
-                    (IEnumerable<string> repos, double time) = await sendEndpointsService.GetRepositoriesParallelAsync(orgName, page, perPage, totalPages, token);
-
-                    if (repos.Any())
-                    {
-                        return Results.Ok(new
-                        {
-                            repos,
-                            time,
-                        });
-                    }
-                    else
-                    {
-                        return Results.Problem("No repos");
-                    }
-                }
-                finally
-                {
-                    cancellationManager.Cancel(connectionId);
-                }
-
-            })
-             .WithName("SendAsync_GetRepositoriesParallelAsync");
-
+            #endregion
 
 
             #region Streams
@@ -133,13 +74,14 @@ namespace HttpClientMethods.Endpoints
                 {
                     return Results.BadRequest("Invalid poster ID.");
                 }
+
                 Stopwatch stopwatch = new();
                 stopwatch.Start();
 
                 PosterDto? poster = await sendEndpointsService.GetPosterClientAsync(posterId);
 
                 stopwatch.Stop();
-                Console.WriteLine($"Time taken to fetch compressed poster: {stopwatch.ElapsedMilliseconds} ms");
+                logger.LogInformation("Time taken to fetch poster: {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
 
                 if (poster == null)
                 {
@@ -155,12 +97,17 @@ namespace HttpClientMethods.Endpoints
 
 
             //POST SERVER
-            app.MapPost("/sendasync/server/posters", async ([FromBody] PosterDto poster,
+            app.MapPost("/sendasync/server/posters", async ([FromBody] PosterDto? poster,
                                                             [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
             {
+                if (poster == null)
+                {
+                    return Results.BadRequest("Poster data is required.");
+                }
+
                 if (string.IsNullOrWhiteSpace(poster.Description))
                 {
-                    return Results.BadRequest("Invalid poster.");
+                    return Results.BadRequest("Invalid poster - description is required.");
                 }
 
                 bool created = await sendEndpointsService.CreatePosterServerAsync(poster);
@@ -170,18 +117,22 @@ namespace HttpClientMethods.Endpoints
                     return Results.Problem("Failed to create poster.");
                 }
 
-                return Results.Created($"/sendasync/client/posters/{poster.Id}", null);
+                return Results.Created($"/sendasync/server/posters/{poster.Id}", null);
             })
             .WithName("SendAsync_Server_CreatePoster")
-            .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status404NotFound)
-            .Produces(StatusCodes.Status200OK);
+            .Produces(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest);
 
 
             //POST CLIENT
-            app.MapPost("/sendasync/client/posters", async ([FromBody] PosterDto poster,
+            app.MapPost("/sendasync/client/posters", async ([FromBody] PosterDto? poster,
                                                             [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
             {
+                if (poster == null)
+                {
+                    return Results.BadRequest("Poster data is required.");
+                }
+
                 Random random = new();
                 byte[] data = new byte[10 * 1024 * 1024]; // 10 MB
                 random.NextBytes(data);
@@ -198,9 +149,8 @@ namespace HttpClientMethods.Endpoints
                 return Results.Created(posterUri, null);
             })
             .WithName("SendAsync_Client_CreatePoster")
-            .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status404NotFound)
-            .Produces(StatusCodes.Status200OK);
+            .Produces(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest);
 
             //COMPRESSION SERVER
             app.MapGet("/sendasync/server/posters/{posterId}/compression", async ([FromRoute] string posterId,
@@ -239,7 +189,7 @@ namespace HttpClientMethods.Endpoints
                 PosterDto? poster = await sendEndpointsService.GetCompressedPosterClientAsync(posterId);
 
                 stopwatch.Stop();
-                Console.WriteLine($"Time taken to fetch compressed poster: {stopwatch.ElapsedMilliseconds} ms");
+                logger.LogInformation("Time taken to fetch compressed poster: {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
 
                 if (poster == null)
                 {
@@ -254,6 +204,56 @@ namespace HttpClientMethods.Endpoints
             .Produces(StatusCodes.Status200OK);
 
             #endregion
+
+
+
+            app.MapGet("/sendasync/orgs/{orgname}/repos", async ([FromRoute] string orgName,
+                                                                 [FromQuery] int page, [FromQuery] int perPage, [FromQuery] int totalPages, [FromQuery(Name = "cid")] string connectionId,
+                                                                 [FromServices] ISendAsyncEndpointsService sendEndpointsService, [FromServices] CancellationManager cancellationManager) =>
+            {
+                CancellationToken token = cancellationManager.GetToken(connectionId, 30);
+
+                try
+                {
+                    (IEnumerable<string> repos, double time) = await sendEndpointsService.GetRepositoriesAsync(orgName, page, perPage, totalPages, token);
+
+                    return Results.Ok(new RepositoriesResponseDto
+                    {
+                        Repos = repos,
+                        ExecutionTimeMs = time,
+                    });
+                }
+                finally
+                {
+                    cancellationManager.Cancel(connectionId);
+                }
+
+            })
+             .WithName("SendAsync_GetRepositoriesAsync");
+
+            app.MapGet("/sendasync/orgs/{orgname}/repos/parallel", async ([FromRoute] string orgName,
+                                                                          [FromQuery] int page, [FromQuery] int perPage, [FromQuery] int totalPages, [FromQuery(Name = "cid")] string connectionId,
+                                                                          [FromServices] ISendAsyncEndpointsService sendEndpointsService, [FromServices] CancellationManager cancellationManager) =>
+            {
+                CancellationToken token = cancellationManager.GetToken(connectionId, 30);
+
+                try
+                {
+                    (IEnumerable<string> repos, double time) = await sendEndpointsService.GetRepositoriesParallelAsync(orgName, page, perPage, totalPages, token);
+
+                    return Results.Ok(new RepositoriesResponseDto
+                    {
+                        Repos = repos,
+                        ExecutionTimeMs = time,
+                    });
+                }
+                finally
+                {
+                    cancellationManager.Cancel(connectionId);
+                }
+
+            })
+             .WithName("SendAsync_GetRepositoriesParallelAsync");
         }
     }
 }

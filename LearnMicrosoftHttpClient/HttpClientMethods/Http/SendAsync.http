@@ -2,13 +2,51 @@
 
 ### HttpMethod.Head
 
-GET {{HostAddress}}/sendasync/users/{{username}}/avatar
+GET {{HostAddress}}/sendasync/users/{{username}}/avatar HTTP/2
 Accept: application/json
 
 ### HttpMethod.Options
 
-GET {{HostAddress}}/sendasync/users/{{username}}/options
+GET {{HostAddress}}/sendasync/users/{{username}}/options  HTTP/2
 Accept: application/json
+
+
+
+### STREAMS - GET
+GET {{HostAddress}}/sendasync/server/posters/test HTTP/2
+Accept: application/octet-stream
+
+### STREAMS - GET
+GET {{HostAddress}}/sendasync/client/posters/test HTTP/2
+Accept: application/octet-stream
+
+
+### STREAMS - POST
+POST {{HostAddress}}/sendasync/server/posters HTTP/2
+Accept: application/json
+Content-Type: application/json
+{
+  "description": "Test Poster"
+}
+
+### STREAMS - POST
+POST {{HostAddress}}/sendasync/client/posters HTTP/2
+Accept: application/json
+Content-Type: application/json
+{
+  "description": "Test Poster"
+}
+
+### STREAMS - GET - COMPRESSION
+GET {{HostAddress}}/sendasync/server/posters/test/compression HTTP/2
+Accept: application/octet-stream
+
+### STREAMS - GET - COMPRESSION
+GET {{HostAddress}}/sendasync/client/posters/test/compression HTTP/2
+Accept: application/octet-stream
+
+
+
 
 
 ### GetAsync(String, CancellationToken) - CancellationToken
@@ -18,39 +56,5 @@ Accept: application/json
 
 ### GetAsync(String, CancellationToken) - CancellationToken
 
-GET {{HostAddress}}/sendasync/orgs/dotnet/repos/parallel?page=1&perPage=5&totalPages=2&cid=1
+GET {{HostAddress}}/sendasync/orgs/dotnet/repos/parallel?page=1&perPage=5&totalPages=2&cid=1  HTTP/2
 Accept: application/json
-
-
-### GetAsync(String, CancellationToken) - StreamCancellationToken
-GET {{HostAddress}}/sendasync/server/posters/test HTTP/2
-Accept: application/octet-stream
-
-### GetAsync(String, CancellationToken) - StreamCancellationToken
-GET {{HostAddress}}/sendasync/client/posters/test HTTP/2
-Accept: application/octet-stream
-
-
-### GetAsync(String, CancellationToken) - StreamCancellationToken
-POST {{HostAddress}}/sendasync/server/posters HTTP/2
-Accept: application/json
-Content-Type: application/json
-{
-  "description": "Test Poster"
-}
-
-### GetAsync(String, CancellationToken) - StreamCancellationToken
-POST {{HostAddress}}/sendasync/client/posters HTTP/2
-Accept: application/json
-Content-Type: application/json
-{
-  "description": "Test Poster"
-}
-
-### GetAsync(String, CancellationToken) - StreamCancellationToken
-GET {{HostAddress}}/sendasync/server/posters/test/compression HTTP/2
-Accept: application/octet-stream
-
-### GetAsync(String, CancellationToken) - StreamCancellationToken
-GET {{HostAddress}}/sendasync/client/posters/test/compression HTTP/2
-Accept: application/octet-stream
