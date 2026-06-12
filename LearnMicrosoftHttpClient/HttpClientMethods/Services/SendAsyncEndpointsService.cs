@@ -146,7 +146,7 @@ namespace HttpClientMethods.Services
 
             JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
 
-            Uri serverPosterUri = new($"http://localhost:5099/sendasync/server/posters/{posterId}", UriKind.Absolute);
+            Uri serverPosterUri = new($"sendasync/server/posters/{posterId}", UriKind.Relative);
 
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, serverPosterUri);
 
@@ -213,7 +213,7 @@ namespace HttpClientMethods.Services
 
             JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
 
-            Uri uri = new($"http://localhost:5099/sendasync/server/posters", UriKind.Absolute);
+            Uri uri = new($"sendasync/server/posters", UriKind.Relative);
 
             try
             {
@@ -240,12 +240,28 @@ namespace HttpClientMethods.Services
                 return response.Headers.Location?.ToString() ?? string.Empty;
 
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
+            {
+                logger.LogError(ex, "An error occurred while preparing poster data for creation.");               
+            }
+            catch(UriFormatException ex)
             {
                 logger.LogError(ex, "An error occurred while preparing poster data for creation.");
-                return string.Empty;
-
             }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, "An error occurred while preparing poster data for creation.");
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogError(ex, "An error occurred while preparing poster data for creation.");
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, "An error occurred while preparing poster data for creation.");
+            }
+
+            return string.Empty;
         }
 
 
@@ -265,25 +281,50 @@ namespace HttpClientMethods.Services
 
             JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
 
-            Uri uri = new($"sendasync/server/posters/{posterId}", UriKind.Relative);            
+            Uri uri = new($"sendasync/server/posters/{posterId}", UriKind.Relative);
 
-            HttpRequestMessage request = new(HttpMethod.Get, uri);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-
-            using HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                logger.LogError($"Failed to get compressed poster with id {posterId}. Status code: {response.StatusCode}");
-                return null;
+                HttpRequestMessage request = new(HttpMethod.Get, uri);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+
+                using HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogError($"Failed to get compressed poster with id {posterId}. Status code: {response.StatusCode}");
+                    return null;
+                }
+
+                using Stream responseStream = await response.Content.ReadAsStreamAsync();
+
+                PosterDto? posterDto = await JsonSerializer.DeserializeAsync<PosterDto>(responseStream, options);
+
+                return posterDto;
+            }
+            catch(InvalidOperationException ex) 
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch (UriFormatException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
             }
 
-            using Stream responseStream = await response.Content.ReadAsStreamAsync();
-
-            PosterDto? posterDto = await JsonSerializer.DeserializeAsync<PosterDto>(responseStream, options);
-
-            return posterDto;
+            return null;
         }
 
         #endregion
