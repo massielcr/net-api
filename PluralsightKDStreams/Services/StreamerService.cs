@@ -366,7 +366,7 @@ namespace PluralsightKDStreams.Services
 
         public async Task<MemoryStream?> GetCompressedPosterExceptionDetailsServerAsync(string posterId)
         {
-            if (posterId == "error")
+            if (posterId == "500error")
             {
                 return null;
             }
@@ -417,41 +417,51 @@ namespace PluralsightKDStreams.Services
 
             try
             {
-                response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode)
+                {
+                    ProblemDetails? problemDetails = new();
+
+                    Stream errorStream = await response.Content.ReadAsStreamAsync();
+
+                    switch (response.StatusCode)
+                    {
+                        case HttpStatusCode.BadRequest:
+                            problemDetails = await JsonSerializer.DeserializeAsync<ProblemDetails>(errorStream, options);
+                            break;
+                        case HttpStatusCode.InternalServerError:
+                            problemDetails = await JsonSerializer.DeserializeAsync<ProblemDetails>(errorStream, options);
+                            break;
+                    }
+
+                    return (null, problemDetails);
+                }
 
                 using Stream responseStream = await response.Content.ReadAsStreamAsync();
 
                 PosterDto? poster = await JsonSerializer.DeserializeAsync<PosterDto>(responseStream, options);
 
-                if (poster == null)
-                {
-                    return (null, new ProblemDetails
-                    {
-                        Title = "Error occurred while fetching compressed poster",
-                        Detail = $"Failed to deserialize compressed poster with ID {posterId}"
-                    });
-                }
-
                 return (poster, null);
             }
-            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.BadRequest)
+            catch (InvalidOperationException ex) 
             {
-                return (null, new ProblemDetails
-                {
-                    Title = "Error occurred while fetching compressed poster",
-                    Detail = $"Requested poster with ID {posterId} is not valid"
-                });
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
             }
-            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.InternalServerError) 
+            catch (UriFormatException ex)
             {
-                return (null, new ProblemDetails
-                {
-                    Title = "Error occurred while fetching compressed poster",
-                    Detail = $"Failed to retrieve compressed poster with ID {posterId} data"
-                });
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
             }
-            catch (Exception) { }
-
+            catch (HttpRequestException ex) 
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch(OperationCanceledException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
 
             return (null, new ProblemDetails
             {

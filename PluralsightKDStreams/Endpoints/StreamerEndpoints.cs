@@ -326,16 +326,24 @@ namespace PluralsightKDStreams.Endpoints
                                                                                   [FromServices] IStreamerService streamerService,
                                                                                   HttpContext httpContext) =>
             {
-                if (string.IsNullOrWhiteSpace(posterId))
+                if (string.IsNullOrWhiteSpace(posterId) || posterId == "400error")
                 {
-                    return Results.BadRequest("Invalid poster ID.");
+                    return Results.Problem(
+                                detail: $"Requested poster ID '{posterId}' is invalid.",
+                                statusCode: StatusCodes.Status400BadRequest,
+                                title: "Bad Request"
+                           );
                 }
 
                 MemoryStream? poster = await streamerService.GetCompressedPosterExceptionDetailsServerAsync(posterId);
 
                 if (poster == null)
                 {
-                    return Results.Problem("Failed to retrieve exception details.");
+                        return Results.Problem(
+                                    detail: $"Failed to retrieve poster ID '{posterId}'.",
+                                    statusCode: StatusCodes.Status500InternalServerError,
+                                    title: "Internal Server Error"
+                                );
                 }
 
                 httpContext.Response.Headers.ContentEncoding = "gzip";
