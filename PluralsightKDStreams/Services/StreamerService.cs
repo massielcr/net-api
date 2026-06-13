@@ -1,6 +1,8 @@
-﻿using PluralsightKDStreams.Dtos;
+﻿using Microsoft.AspNetCore.Mvc;
+using PluralsightKDStreams.Dtos;
 using PluralsightKDStreams.Interfaces;
 using System.IO.Compression;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -360,6 +362,102 @@ namespace PluralsightKDStreams.Services
             }
 
             return false;
+        }
+
+        public async Task<MemoryStream?> GetCompressedPosterExceptionDetailsServerAsync(string posterId)
+        {
+            if (posterId == "error")
+            {
+                return null;
+            }
+
+            Random random = new();
+            byte[] data = new byte[1024 * 1024 * 5]; // 5 MB of random data
+            random.NextBytes(data);
+
+            PosterDto poster = new()
+            {
+                Id = posterId,
+                Description = $"Generated poster - {DateTime.UtcNow}",
+                Data = data
+            };
+
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            MemoryStream memoryStream = new();
+            JsonSerializer.Serialize(memoryStream, poster, options);
+            memoryStream.Position = 0;
+
+            MemoryStream compressedMemoryStream = new();
+
+            await using (GZipStream gZipStream = new(compressedMemoryStream, CompressionMode.Compress, true))
+            {
+                await memoryStream.CopyToAsync(gZipStream);
+                await gZipStream.FlushAsync();
+            }
+
+            compressedMemoryStream.Position = 0;
+
+            return compressedMemoryStream;
+        }
+
+        public async Task<(PosterDto? poster, ProblemDetails? errors)> GetCompressedPosterExceptionDetailsClientAsync(string posterId)
+        {
+            HttpClient httpClient = httpClientFactory.CreateClient("Local");
+
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+            
+            Uri uri = new($"streamsapi/server/posters/{posterId}/exception", UriKind.Relative);
+
+            HttpRequestMessage request = new(HttpMethod.Get, uri);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+
+            using HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+            try
+            {
+                response.EnsureSuccessStatusCode();
+
+                using Stream responseStream = await response.Content.ReadAsStreamAsync();
+
+                PosterDto? poster = await JsonSerializer.DeserializeAsync<PosterDto>(responseStream, options);
+
+                if (poster == null)
+                {
+                    return (null, new ProblemDetails
+                    {
+                        Title = "Error occurred while fetching compressed poster",
+                        Detail = $"Failed to deserialize compressed poster with ID {posterId}"
+                    });
+                }
+
+                return (poster, null);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.BadRequest)
+            {
+                return (null, new ProblemDetails
+                {
+                    Title = "Error occurred while fetching compressed poster",
+                    Detail = $"Requested poster with ID {posterId} is not valid"
+                });
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.InternalServerError) 
+            {
+                return (null, new ProblemDetails
+                {
+                    Title = "Error occurred while fetching compressed poster",
+                    Detail = $"Failed to retrieve compressed poster with ID {posterId} data"
+                });
+            }
+            catch (Exception) { }
+
+
+            return (null, new ProblemDetails
+            {
+                Title = "Error occurred while fetching compressed poster",
+                Detail = $"Failed to retrieve compressed poster with ID {posterId}"
+            });
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using PluralsightKDStreams.Dtos;
+﻿using Microsoft.AspNetCore.Mvc;
+using PluralsightKDStreams.Dtos;
 
 namespace PluralsightKDStreams.Interfaces
 {
@@ -18,5 +19,9 @@ namespace PluralsightKDStreams.Interfaces
 
         Task<bool> GetServerTrailerAsync(string trailerId, CancellationToken cancellationToken);
         Task<bool> GetClientTrailerAsync(string trailerId, int httptimeout, CancellationToken cancellationToken);
+
+
+        Task<MemoryStream?> GetCompressedPosterExceptionDetailsServerAsync(string posterId);
+        Task<(PosterDto? poster, ProblemDetails? errors)> GetCompressedPosterExceptionDetailsClientAsync(string posterId);
     }
 }

@@ -3,6 +3,7 @@ using PluralsightKDStreams.Dtos;
 using PluralsightKDStreams.Interfaces;
 using PluralsightKDStreams.Services;
 using System.Diagnostics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PluralsightKDStreams.Endpoints
 {
@@ -317,6 +318,59 @@ namespace PluralsightKDStreams.Endpoints
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status499ClientClosedRequest)
+            .Produces(StatusCodes.Status500InternalServerError);
+
+
+            //EXCEPTION HANDLING SERVER
+            app.MapGet("/streamsapi/server/posters/{posterId}/exception", async ([FromRoute] string posterId,
+                                                                                  [FromServices] IStreamerService streamerService,
+                                                                                  HttpContext httpContext) =>
+            {
+                if (string.IsNullOrWhiteSpace(posterId))
+                {
+                    return Results.BadRequest("Invalid poster ID.");
+                }
+
+                MemoryStream? poster = await streamerService.GetCompressedPosterExceptionDetailsServerAsync(posterId);
+
+                if (poster == null)
+                {
+                    return Results.Problem("Failed to retrieve exception details.");
+                }
+
+                httpContext.Response.Headers.ContentEncoding = "gzip";
+
+                return Results.File(
+                                    fileStream: poster,
+                                    contentType: "application/json"
+                                );
+            })
+             .WithName("SendAsync_Server_GetCompressedPosterExceptionDetails")
+             .Produces(StatusCodes.Status200OK)
+             .Produces(StatusCodes.Status400BadRequest);
+
+
+            //EXCEPTION HANDLING CLIENT
+            app.MapGet("/streamsapi/client/posters/{posterId}/exception", async ([FromRoute] string posterId,
+                                                                                 [FromServices] IStreamerService streamerService) =>
+            {
+                if (string.IsNullOrWhiteSpace(posterId))
+                {
+                    return Results.BadRequest("Invalid poster ID");
+                }
+
+                (PosterDto? poster, ProblemDetails? errors) = await streamerService.GetCompressedPosterExceptionDetailsClientAsync(posterId);
+
+                if (poster == null && errors != null)
+                {
+                    return Results.Problem(errors);
+                }
+
+                return Results.Ok(poster);
+            })
+            .WithName("SendAsync_Client_GetCompressedPosterExceptionDetails")
+            .Produces(StatusCodes.Status200OK, typeof(PosterDto), "application/json")
+            .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
         }
     }

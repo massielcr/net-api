@@ -59,13 +59,15 @@ GET {{HostAddress}}/streamsapi/client/trailers/test?cid=1&&timeout=30&httptimeou
 Accept: application/json
 
 
+
 ### STREAMS - GET - EXCEPTION HANDLING
 GET {{HostAddress}}/streamsapi/server/posters/test/exception HTTP/2
 Accept: application/json
 
 ### STREAMS - GET - EXCEPTION HANDLING
-GET {{HostAddress}}/streamsapi/client/posters/test/exception HTTP/2
+GET {{HostAddress}}/streamsapi/client/posters/error/exception HTTP/2
 Accept: application/json
+
 
 
 ### STREAMS - GET - POLLY  RETRY
@@ -75,4 +77,5 @@ Accept: application/json
 ### STREAMS - GET - POLLY  RETRY
 GET {{HostAddress}}/streamsapi/client/posters/test/polly HTTP/2
 Accept: application/json
+
 
