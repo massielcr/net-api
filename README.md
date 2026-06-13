@@ -1,21 +1,21 @@
-# net-api - HttpClient Methods Practice Project
+# net-api - System.Net.Http API Practice
 
 ## Overview
 
-This project demonstrates and practices core concepts from the [System.Net.Http API](https://learn.microsoft.com/en-us/dotnet/api/system.net.http?view=net-10.0). It's a practical ASP.NET Web API application that showcases real-world usage patterns of HttpClient for making HTTP requests and handling responses.
+This repository contains a collection of projects designed to explore and practice concepts from the [System.Net.Http API](https://learn.microsoft.com/en-us/dotnet/api/system.net.http?view=net-10.0). It demonstrates real-world patterns for making HTTP requests, handling responses, and building HTTP-based services in .NET.
 
-## Purpose
+## Solution Projects
 
-The examples in this project are designed to help developers understand and practice:
+### 1. **HttpClientMethods**
+A Web API project showcasing practical implementations and patterns for using HttpClient. Includes endpoint handlers, service layers, and HTTP utility configurations.
 
-- HttpClient initialization and configuration
-- Typed HttpClient patterns
-- Request headers and default headers
-- HTTP method implementations (GET, POST, PUT, DELETE, etc.)
-- Request/response handling
-- Error handling and resilience
-- JSON serialization with System.Text.Json
-- Integration with external APIs (e.g., GitHub API)
+### 2. **PluralsightKDStreams**
+A project demonstrating HTTP client usage for streaming and external API integration scenarios.
+
+### 3. **WebAPIClient**
+A utility project providing reusable HTTP client implementations and helpers for consuming web APIs.
+
+For detailed information about each project, see the README file within its directory.
 
 ## Technology Stack
 
@@ -23,17 +23,6 @@ The examples in this project are designed to help developers understand and prac
 - **ASP.NET Web API** - Slim builder pattern
 - **HttpClient** - System.Net.Http
 - **JSON Serialization** - System.Text.Json with AOT support
-
-## Project Structure
-
-- `HttpClientMethods/` - Main Web API project
-  - `Endpoints/` - API endpoint handlers
-  - `Services/` - Business logic and HTTP service implementations
-  - `Http/` - HTTP-related utilities and configurations
-  - `Models/` - Domain models
-  - `Dtos/` - Data transfer objects
-  - `Interfaces/` - Service contracts
-  - `Program.cs` - Application startup and configuration
 
 ## References
 
