@@ -23,10 +23,10 @@ namespace HttpClientMethods.Endpoints
                     return Results.NotFound("Issue not found.");
                 }
 
-                return Results.Ok();
+                return Results.NoContent();
             })
             .WithName("DeleteAsync_UnlockIssueAsync")
-            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
@@ -57,10 +57,10 @@ namespace HttpClientMethods.Endpoints
                     return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
                 }                  
 
-                return Results.Ok();
+                return Results.NoContent();
             })
             .WithName("DeleteAsync_UnlockIssuesAsync")
-            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status499ClientClosedRequest);
@@ -81,10 +81,10 @@ namespace HttpClientMethods.Endpoints
                     return Results.NotFound("Issue not found.");
                 }
 
-                return Results.Ok();
+                return Results.NoContent();
             })
             .WithName("DeleteAsync_UnlockIssueUriAsync")
-            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
@@ -117,10 +117,10 @@ namespace HttpClientMethods.Endpoints
                 }
 
 
-                return Results.Empty;
+                return Results.NoContent();
             })
             .WithName("DeleteAsync_UnlockIssuesStreamAsync")
-            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status499ClientClosedRequest);
