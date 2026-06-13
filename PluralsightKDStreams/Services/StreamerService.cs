@@ -364,6 +364,7 @@ namespace PluralsightKDStreams.Services
             return false;
         }
 
+
         public async Task<MemoryStream?> GetCompressedPosterExceptionDetailsServerAsync(string posterId)
         {
             if (posterId == "500error")
