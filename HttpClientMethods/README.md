@@ -26,13 +26,22 @@ The examples in this project are designed to help developers understand and prac
 
 ## Project Structure
 
-- `Endpoints/` - API endpoint handlers
-- `Services/` - Business logic and HTTP service implementations
-- `Http/` - HTTP-related utilities and configurations
-- `Models/` - Domain models
-- `Dtos/` - Data transfer objects
-- `Interfaces/` - Service contracts
-- `Program.cs` - Application startup and configuration
+```
+HttpClientMethods/
+├── Program.cs # Application startup and configuration
+├── HttpClientMethods.csproj # Project file
+├── AppJsonSerializerContext.cs # AOT-friendly JSON serialization context
+├── Endpoints/ # API endpoint handlers
+├── Services/ # Business logic and HTTP service implementations
+├── Http/ # HTTP-related utilities and configurations
+├── Models/ # Domain models
+├── Dtos/ # Data transfer objects
+├── Interfaces/ # Service contracts
+├── Properties/ # Project properties and metadata
+├── appsettings.json # Application configuration
+├── appsettings.Development.json # Development-specific settings
+└── wwwroot/ # Static web assets
+```
 
 ## References
 
