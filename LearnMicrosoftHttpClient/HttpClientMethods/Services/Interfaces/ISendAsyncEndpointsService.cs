@@ -27,6 +27,9 @@ namespace HttpClientMethods.Services
         Task<bool> CreateCompressedPosterServerAsync(PosterDto poster);
         Task<string> CreateCompressedPosterClientAsync(PosterDto poster);
 
+        Task<bool> GetServerTrailerAsync(string trailerId, CancellationToken cancellationToken);
+        Task<bool> GetClientTrailerAsync(string trailerId, int httptimeout, CancellationToken cancellationToken);
+
         #endregion
 
 

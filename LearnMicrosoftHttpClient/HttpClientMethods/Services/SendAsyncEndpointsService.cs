@@ -423,6 +423,68 @@ namespace HttpClientMethods.Services
         }
 
 
+        public async Task<bool> GetServerTrailerAsync(string trailerId, CancellationToken cancellationToken)
+        {
+            DateTime dateTime = DateTime.UtcNow;
+
+            while ((DateTime.UtcNow - dateTime).TotalSeconds < 15)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await Task.Delay(1000, cancellationToken);
+            }
+
+            return true;
+        }
+
+        public async Task<bool> GetClientTrailerAsync(string trailerId, int httptimeout, CancellationToken cancellationToken)
+        {
+            HttpClient httpClient = httpClientFactory.CreateClient("Local");
+
+            if (httptimeout > 0)
+            {
+                httpClient.Timeout = TimeSpan.FromSeconds(httptimeout);
+            }
+
+            Uri uri = new($"sendasync/server/trailers/{trailerId}", UriKind.Relative);
+
+            HttpRequestMessage message = new(HttpMethod.Get, uri);
+
+            try
+            {
+                using HttpResponseMessage response = await httpClient.SendAsync(message, cancellationToken);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogError($"Failed to get trailer with id {trailerId}. Status code: {response.StatusCode}");
+                    return false;
+                }
+
+                return true;    
+                
+            }
+            catch (InvalidOperationException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching trailer with id {trailerId}.");
+            }
+            catch (UriFormatException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching trailer with id {trailerId}.");
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching trailer with id {trailerId}.");
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching trailer with id {trailerId}.");
+                throw;
+            }
+
+            return false;
+        }
+
+
         #endregion
 
 

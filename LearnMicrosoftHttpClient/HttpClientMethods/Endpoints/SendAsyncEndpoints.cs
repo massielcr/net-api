@@ -44,7 +44,7 @@ namespace HttpClientMethods.Endpoints
 
             //GET SERVER
             app.MapGet("/sendasync/server/posters/{posterId}", async ([FromRoute] string posterId,
-                                                               [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
+                                                                      [FromServices] ISendAsyncEndpointsService sendEndpointsService) =>
             {
                 if (string.IsNullOrWhiteSpace(posterId))
                 {
@@ -276,6 +276,77 @@ namespace HttpClientMethods.Endpoints
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status201Created);
+
+
+
+            //CANCELLATION SERVER
+            app.MapGet("/sendasync/server/trailers/{trailerId}", async ([FromRoute] string trailerId,                                                                       
+                                                                       [FromServices] ISendAsyncEndpointsService sendEndpointsService,
+                                                                       CancellationToken cancellationToken) =>
+            {
+                if (string.IsNullOrWhiteSpace(trailerId))
+                {
+                    return Results.BadRequest("Invalid trailer ID.");
+                }
+
+                try
+                {
+                    bool success = await sendEndpointsService.GetServerTrailerAsync(trailerId, cancellationToken);
+
+                    if (!success)
+                    {
+                        return Results.Problem("Failed to retrieve trailer.");
+                    }
+
+                    return Results.Ok();
+
+                }
+                catch (OperationCanceledException)
+                {
+                    return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
+                }                    
+            })
+            .WithName("SendAsync_GetServerTrailerAsync")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status499ClientClosedRequest)
+            .Produces(StatusCodes.Status500InternalServerError);
+
+            //CANCELLATION CLIENT
+            app.MapGet("/sendasync/client/trailers/{trailerId}", async ([FromRoute] string trailerId,
+                                                                        [FromQuery(Name ="cid")] string connectionId, [FromQuery] int timeout, [FromQuery] int httptimeout,
+                                                                        [FromServices] ISendAsyncEndpointsService sendEndpointsService, 
+                                                                        [FromServices] CancellationManager cancellationManager) =>
+                                                                       
+            {
+                if (string.IsNullOrWhiteSpace(trailerId))
+                {
+                    return Results.BadRequest("Invalid trailer ID.");
+                }
+
+                CancellationToken token = cancellationManager.GetToken(connectionId, timeout);
+
+                try
+                {
+                    bool success = await sendEndpointsService.GetClientTrailerAsync(trailerId, httptimeout, token);
+
+                    if(!success)
+                    {
+                        return Results.Problem("Failed to retrieve trailer.");
+                    }
+                }
+                catch(OperationCanceledException ex) 
+                { 
+                    return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
+                }     
+
+                return Results.Ok();
+            })
+            .WithName("SendAsync_GetClientTrailerAsync")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status499ClientClosedRequest)
+            .Produces(StatusCodes.Status500InternalServerError);
 
             #endregion
 

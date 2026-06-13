@@ -67,6 +67,15 @@ Content-Type: application/json
 
 
 
+### STREAMS - GET - CANCELLATION
+GET {{HostAddress}}/sendasync/server/trailers/test HTTP/2
+Accept: application/json
+
+### STREAMS - GET - CANCELLATION
+GET {{HostAddress}}/sendasync/client/trailers/test?cid=1&&timeout=30&httptimeout=0 HTTP/2
+Accept: application/json
+
+
 
 
 ### GetAsync(String, CancellationToken) - CancellationToken
