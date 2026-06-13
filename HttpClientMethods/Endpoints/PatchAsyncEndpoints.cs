@@ -1,7 +1,7 @@
 ﻿using HttpClientMethods.Dtos;
-using HttpClientMethods.Helpers;
+using HttpClientMethods.Interfaces;
 using HttpClientMethods.Models;
-using HttpClientMethods.Services.Interfaces;
+using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HttpClientMethods.Endpoints
@@ -39,14 +39,14 @@ namespace HttpClientMethods.Endpoints
                                                                                        [FromQuery(Name ="cid")] string connectionId,
                                                                                        [FromBody] UpdateRepoIssuesRequestDto updateRepoIssuesRequestDto,
                                                                                        [FromServices] IPatchAsyncEndpoinsService patchAsyncEndpoinsService,
-                                                                                       [FromServices] CancellationManager cancellationManager) =>
+                                                                                       [FromServices] ICancellationService cancellationService) =>
             {
                 if (updateRepoIssuesRequestDto == null || updateRepoIssuesRequestDto.Issues == null || updateRepoIssuesRequestDto.Issues.Count == 0)
                 {
                     return Results.BadRequest(new { error = "There are no issues to update." });
                 }
 
-                CancellationToken cancellationToken = cancellationManager.GetToken(connectionId, seconds: 30);
+                CancellationToken cancellationToken = cancellationService.GetToken(connectionId, seconds: 30);
 
                 try
                 {
@@ -113,7 +113,7 @@ namespace HttpClientMethods.Endpoints
                                                                                              [FromQuery(Name = "cid")] string connectionId,
                                                                                              [FromBody] UpdateRepoIssuesRequestDto updateRepoIssuesRequestDto,
                                                                                              [FromServices] IPatchAsyncEndpoinsService patchAsyncEndpoinsService,
-                                                                                             [FromServices] CancellationManager cancellationManager,
+                                                                                             [FromServices] ICancellationService cancellationService,
                                                                                              HttpContext context) =>
             {
 
@@ -122,7 +122,7 @@ namespace HttpClientMethods.Endpoints
                     return Results.BadRequest(new { error = "There are no issues to update." });
                 }
 
-                CancellationToken cancellationToken = cancellationManager.GetToken(connectionId, seconds: 30);
+                CancellationToken cancellationToken = cancellationService.GetToken(connectionId, seconds: 30);
 
                 IEnumerable<GitHubIssue> githubIssues = updateRepoIssuesRequestDto.Issues.Select(issue => new GitHubIssue
                 {
@@ -157,7 +157,7 @@ namespace HttpClientMethods.Endpoints
                 }
                 finally
                 {
-                    cancellationManager.Cancel(connectionId);
+                    cancellationService.Cancel(connectionId);
                 }
 
                 return Results.Empty;

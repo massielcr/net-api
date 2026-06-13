@@ -1,5 +1,5 @@
 ﻿using HttpClientMethods.Dtos;
-using HttpClientMethods.Helpers;
+using HttpClientMethods.Interfaces;
 using HttpClientMethods.Models;
 using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -34,14 +34,14 @@ namespace HttpClientMethods.Endpoints
                                                                                   [FromQuery(Name = "cid")] string connectionId,
                                                                                   [FromBody] LockRepoIssuesRequestDto issues,
                                                                                   [FromServices] IPutAsyncEndpointsService putAsyncEndpointsService,
-                                                                                  [FromServices] CancellationManager cancellationManager) =>
+                                                                                  [FromServices] ICancellationService cancellationService) =>
             {
                 if (issues == null || issues.Issues.Count == 0)
                 {
                     return Results.BadRequest(new { error = "Issue number must be greater than zero." });
                 }
 
-                CancellationToken cancellationToken = cancellationManager.GetToken(connectionId, seconds: 30);
+                CancellationToken cancellationToken = cancellationService.GetToken(connectionId, seconds: 30);
 
                 List<GitHubIssue> githubIssues = issues.Issues.Select(i => new GitHubIssue
                 {
@@ -100,7 +100,7 @@ namespace HttpClientMethods.Endpoints
                                                                                       [FromQuery(Name = "cid")] string connectionId,
                                                                                       [FromBody] LockRepoIssuesRequestDto issues,                                                                                  
                                                                                       [FromServices] IPutAsyncEndpointsService putAsyncEndpointsService,
-                                                                                      [FromServices] CancellationManager cancellationManager,
+                                                                                      [FromServices] ICancellationService cancellationService,
                                                                                       HttpContext context) =>
             {
                 if (issues == null || !issues.Issues.Any())
@@ -108,7 +108,7 @@ namespace HttpClientMethods.Endpoints
                     return Results.BadRequest(new { error = "Issue number must be greater than zero." });
                 }
 
-                CancellationToken cancellationToken = cancellationManager.GetToken(connectionId, seconds: 30);
+                CancellationToken cancellationToken = cancellationService.GetToken(connectionId, seconds: 30);
 
                 List<GitHubIssue> githubIssues = issues.Issues.Select(i => new GitHubIssue
                 {
@@ -144,7 +144,7 @@ namespace HttpClientMethods.Endpoints
                 }
                 finally
                 {
-                    cancellationManager.Cancel(connectionId);
+                    cancellationService.Cancel(connectionId);
                 }
 
                 return Results.Empty;

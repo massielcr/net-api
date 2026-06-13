@@ -1,7 +1,6 @@
 ﻿using HttpClientMethods.Dtos;
-using HttpClientMethods.Helpers;
+using HttpClientMethods.Interfaces;
 using HttpClientMethods.Models;
-using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HttpClientMethods.Endpoints

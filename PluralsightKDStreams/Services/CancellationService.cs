@@ -1,8 +1,9 @@
-﻿using System.Collections.Concurrent;
+﻿using PluralsightKDStreams.Interfaces;
+using System.Collections.Concurrent;
 
-namespace HttpClientMethods.Helpers
+namespace PluralsightKDStreams.Services
 {
-    public class CancellationManager
+    public class CancellationService : ICancellationService
     {
         private readonly ConcurrentDictionary<string, CancellationTokenSource> _sources = new();
 

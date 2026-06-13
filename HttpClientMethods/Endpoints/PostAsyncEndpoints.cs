@@ -1,5 +1,5 @@
 ﻿using HttpClientMethods.Dtos;
-using HttpClientMethods.Helpers;
+using HttpClientMethods.Interfaces;
 using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,7 +34,7 @@ namespace HttpClientMethods.Endpoints
                                                                         [FromQuery] int count, [FromQuery(Name = "cid")] string connectionId,
                                                                         [FromBody] CreatePersonalRepoIssueRequestDto issue,
                                                                         [FromServices] IPostAsyncEndpointsService postAsyncEndpointsService,
-                                                                        [FromServices] CancellationManager cancellationManager) =>
+                                                                        [FromServices] ICancellationService cancellationService) =>
             {
 
                 if (string.IsNullOrWhiteSpace(issue.Title))
@@ -42,7 +42,7 @@ namespace HttpClientMethods.Endpoints
                     return Results.BadRequest(new { error = "Issue title cannot be empty." });
                 }
 
-                CancellationToken cancellationToken = cancellationManager.GetToken(connectionId, 30);
+                CancellationToken cancellationToken = cancellationService.GetToken(connectionId, 30);
 
                 try
                 {
@@ -112,7 +112,7 @@ namespace HttpClientMethods.Endpoints
                                                                                  [FromServices] IPostAsyncEndpointsService postAsyncEndpointsService,
                                                                                  [FromServices] IFileService fileService,
                                                                                  [FromServices] IWebHostEnvironment webHostEnvironment,
-                                                                                 [FromServices] CancellationManager cancellationManager) =>
+                                                                                 [FromServices] ICancellationService cancellationService) =>
             {
 
                 if (string.IsNullOrWhiteSpace(issue.Title))
@@ -120,7 +120,7 @@ namespace HttpClientMethods.Endpoints
                     return Results.BadRequest(new { error = "Issue title cannot be empty." });
                 }
 
-                CancellationToken cancellationToken = cancellationManager.GetToken(connectionId, 30);
+                CancellationToken cancellationToken = cancellationService.GetToken(connectionId, 30);
 
                 try
                 {

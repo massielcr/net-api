@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using HttpClientMethods.Interfaces;
+using System.Runtime.CompilerServices;
 
 namespace HttpClientMethods.Services
 {

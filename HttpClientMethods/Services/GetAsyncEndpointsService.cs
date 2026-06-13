@@ -1,4 +1,5 @@
 ﻿using HttpClientMethods.Dtos;
+using HttpClientMethods.Interfaces;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;

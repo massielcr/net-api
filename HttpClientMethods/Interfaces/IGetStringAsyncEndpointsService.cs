@@ -1,4 +1,4 @@
-﻿namespace HttpClientMethods.Services
+﻿namespace HttpClientMethods.Interfaces
 {
     public interface IGetStringAsyncEndpointsService
     {

@@ -1,6 +1,6 @@
 ﻿using HttpClientMethods.Models;
 
-namespace HttpClientMethods.Services
+namespace HttpClientMethods.Interfaces
 {
     public interface IGetByteArrayAsyncEndpointsService
     {

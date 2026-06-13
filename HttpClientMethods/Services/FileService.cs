@@ -1,4 +1,6 @@
-﻿namespace HttpClientMethods.Helpers
+﻿using HttpClientMethods.Interfaces;
+
+namespace HttpClientMethods.Services
 {
     public class FileService : IFileService
     {

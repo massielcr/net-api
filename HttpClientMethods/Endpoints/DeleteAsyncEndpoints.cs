@@ -1,4 +1,4 @@
-﻿using HttpClientMethods.Helpers;
+﻿using HttpClientMethods.Interfaces;
 using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,14 +34,14 @@ namespace HttpClientMethods.Endpoints
                                                                                        [FromQuery(Name = "cid")] string connectionId,
                                                                                        [FromBody] List<int> ids,
                                                                                        [FromServices] IDeleteAsyncEndpointsService deleteService,
-                                                                                       [FromServices] CancellationManager cancellationManager) =>
+                                                                                       [FromServices] ICancellationService cancellationService) =>
             {
                 if (ids.Any(id => id <= 0))
                 {
                     return Results.BadRequest("Invalid issue IDs.");
                 }
 
-                CancellationToken cancellationToken = cancellationManager.GetToken(connectionId, 30);
+                CancellationToken cancellationToken = cancellationService.GetToken(connectionId, 30);
 
                 try
                 {
@@ -93,14 +93,14 @@ namespace HttpClientMethods.Endpoints
                                                                                              [FromQuery(Name = "cid")] string connectionId,
                                                                                              [FromBody] List<int> ids,
                                                                                              [FromServices] IDeleteAsyncEndpointsService deleteService,
-                                                                                             [FromServices] CancellationManager cancellationManager) =>
+                                                                                             [FromServices] ICancellationService cancellationService) =>
             {
                 if (ids.Any(id => id <= 0))
                 {
                     return Results.BadRequest("Invalid issue IDs.");
                 }
 
-                CancellationToken cancellationToken = cancellationManager.GetToken(connectionId, 30);
+                CancellationToken cancellationToken = cancellationService.GetToken(connectionId, 30);
 
                 try
                 {

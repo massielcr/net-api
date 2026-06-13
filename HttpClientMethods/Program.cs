@@ -1,13 +1,11 @@
 using HttpClientMethods.Dtos;
 using HttpClientMethods.Endpoints;
-using HttpClientMethods.Helpers;
+using HttpClientMethods.Interfaces;
 using HttpClientMethods.Services;
-using HttpClientMethods.Services.Interfaces;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.Services.AddRequestDecompression();
-
 
 builder.Services.AddHttpClient("GitHub", client =>
 {
@@ -23,14 +21,8 @@ builder.Services.AddHttpClient("GitHub", client =>
     }
 });
 
-builder.Services.AddHttpClient("Local", client =>
-{
-    client.BaseAddress = new Uri("http://localhost:5099");
-})
-.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-{
-    AutomaticDecompression = System.Net.DecompressionMethods.GZip
-});
+builder.Services.AddHttpClient();
+
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -38,15 +30,8 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.WriteIndented = true;
 });
 
-builder.Services.AddHttpClient();
-
-
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-
-builder.Services.AddSingleton<CancellationManager>();
 builder.Services.AddSingleton<IFileService, FileService>();
+builder.Services.AddSingleton<ICancellationService, CancellationService>();
 
 builder.Services.AddScoped<IGetAsyncEndpointsService,  GetAsyncEndpointsService>();
 builder.Services.AddScoped<IGetStreamAsyncEndpointsService, GetStreamAsyncEndpointsService>();
@@ -59,7 +44,8 @@ builder.Services.AddScoped<IDeleteAsyncEndpointsService, DeleteAsyncEndpointsSer
 builder.Services.AddScoped<ISendAsyncEndpointsService, SendAsyncEndpointsService>();
 
 
-
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
 
 
 var app = builder.Build();
@@ -67,11 +53,6 @@ var app = builder.Build();
 app.UseRequestDecompression();
 
 app.UseStaticFiles();
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
 
 app.UseExceptionHandler(exceptionApp =>
 {
@@ -103,6 +84,11 @@ app.MapDeleteAsyncEndpoints();
 app.MapSendAsyncEndpoints();
 app.MapCancellationEndpoints();
 
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
 
 app.Run();
 

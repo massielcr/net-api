@@ -1,4 +1,4 @@
-﻿using HttpClientMethods.Services;
+﻿using HttpClientMethods.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HttpClientMethods.Endpoints

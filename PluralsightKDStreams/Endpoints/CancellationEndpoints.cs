@@ -1,5 +1,5 @@
-﻿using HttpClientMethods.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using PluralsightKDStreams.Interfaces;
 
 namespace HttpClientMethods.Endpoints
 {
@@ -7,7 +7,7 @@ namespace HttpClientMethods.Endpoints
     {
         public static void MapCancellationEndpoints(this WebApplication app)
         {
-            app.MapGet("/cancellationapi/cancel", ([FromQuery(Name = "cid")] string connectionId, [FromServices] ICancellationService cancellationService) =>
+            app.MapGet("/streamsapi/cancel", ([FromQuery(Name = "cid")] string connectionId, [FromServices] ICancellationService cancellationService) =>
             {
                 cancellationService.Cancel(connectionId);
 

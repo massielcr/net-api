@@ -1,4 +1,6 @@
-﻿namespace HttpClientMethods.Services
+﻿using HttpClientMethods.Interfaces;
+
+namespace HttpClientMethods.Services
 {
     public class GetStringAsyncEndpointsService(IHttpClientFactory httpClientFactory, ILogger<GetStringAsyncEndpointsService> logger) : IGetStringAsyncEndpointsService
     {

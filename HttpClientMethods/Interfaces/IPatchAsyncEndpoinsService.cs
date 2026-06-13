@@ -1,6 +1,6 @@
 ﻿using HttpClientMethods.Models;
 
-namespace HttpClientMethods.Services.Interfaces
+namespace HttpClientMethods.Interfaces
 {
     public interface IPatchAsyncEndpoinsService
     {

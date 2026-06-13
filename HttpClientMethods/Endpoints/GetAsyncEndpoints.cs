@@ -1,5 +1,5 @@
 ﻿using HttpClientMethods.Dtos;
-using HttpClientMethods.Helpers;
+using HttpClientMethods.Interfaces;
 using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -35,9 +35,9 @@ namespace HttpClientMethods.Endpoints
 
             app.MapGet("/getasyncapi/orgs/{orgname}/repos", async ([FromRoute] string orgName, 
                                                                    [FromQuery] int page, [FromQuery] int perPage, [FromQuery] int totalPages, [FromQuery(Name = "cid")] string connectionId, 
-                                                                   [FromServices] IGetAsyncEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager) =>
+                                                                   [FromServices] IGetAsyncEndpointsService getEndpointsService, [FromServices] ICancellationService cancellationService) =>
             {
-                CancellationToken token = cancellationManager.GetToken(connectionId, 30);
+                CancellationToken token = cancellationService.GetToken(connectionId, 30);
 
                 try
                 {
@@ -52,7 +52,7 @@ namespace HttpClientMethods.Endpoints
                 }
                 finally
                 {
-                    cancellationManager.Cancel(connectionId);
+                    cancellationService.Cancel(connectionId);
                 }                
 
             })
@@ -85,10 +85,10 @@ namespace HttpClientMethods.Endpoints
             app.MapGet("/getasyncapi/orgs/{owner}/repos/streamcancel", ([FromRoute] string owner, 
                                                                         [FromQuery] int perPage, [FromQuery(Name = "cid")] string connectionId,
                                                                         [FromServices] IGetAsyncEndpointsService getEndpointsService,
-                                                                        [FromServices] CancellationManager cancellationManager,
+                                                                        [FromServices] ICancellationService cancellationService,
                                                                         HttpContext httpContext) =>
             {
-                CancellationToken cancellationToken = cancellationManager.GetToken(connectionId, 30);
+                CancellationToken cancellationToken = cancellationService.GetToken(connectionId, 30);
 
                 async IAsyncEnumerable<GitHubRepositoryDto?> StreamWithLifecycleAsync()
                 {
@@ -103,7 +103,7 @@ namespace HttpClientMethods.Endpoints
                     }
                     finally
                     {
-                        cancellationManager.Cancel(connectionId);
+                        cancellationService.Cancel(connectionId);
                     }
                 }
 
@@ -141,9 +141,9 @@ namespace HttpClientMethods.Endpoints
             app.MapGet("/getasyncapi/orgs/{orgname}/repos/{reponame}/commits", async ([FromRoute] string orgname, [FromRoute] string reponame,
                                                                                       [FromQuery(Name = "page")] int page, [FromQuery(Name = "perPage")] int perPage, [FromQuery(Name = "totalPages")] int totalPages,
                                                                                       [FromQuery(Name = "cid")] string connectionId,
-                                                                                      [FromServices] IGetAsyncEndpointsService getEndpointsService, [FromServices] CancellationManager cancellationManager) =>
+                                                                                      [FromServices] IGetAsyncEndpointsService getEndpointsService, [FromServices] ICancellationService cancellationService) =>
             {
-                var cancellationToken = cancellationManager.GetToken(connectionId, 30);
+                var cancellationToken = cancellationService.GetToken(connectionId, 30);
 
                 try
                 {
@@ -181,7 +181,7 @@ namespace HttpClientMethods.Endpoints
                 }
                 finally
                 {
-                    cancellationManager.Cancel(connectionId);
+                    cancellationService.Cancel(connectionId);
                 }
             })
             .WithName("GetAsync_GetCommitsAsync")
@@ -215,10 +215,10 @@ namespace HttpClientMethods.Endpoints
                                                                                                  [FromQuery(Name = "page")] int page, [FromQuery(Name = "perPage")] int perPage, [FromQuery(Name = "totalPages")] int totalPages,
                                                                                                  [FromQuery(Name = "cid")] string connectionId,
                                                                                                  [FromServices] IGetAsyncEndpointsService getEndpointsService, 
-                                                                                                 [FromServices] CancellationManager cancellationManager, 
+                                                                                                 [FromServices] ICancellationService cancellationService, 
                                                                                                  HttpContext context) =>
             {
-                CancellationToken token = cancellationManager.GetToken(connectionId, 30);
+                CancellationToken token = cancellationService.GetToken(connectionId, 30);
 
                 int count = 0;
 
@@ -248,7 +248,7 @@ namespace HttpClientMethods.Endpoints
                 }
                 finally
                 {
-                    cancellationManager.Cancel(connectionId);
+                    cancellationService.Cancel(connectionId);
                 }
 
                 return Results.Empty;

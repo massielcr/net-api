@@ -1,5 +1,5 @@
-﻿using HttpClientMethods.Models;
-using HttpClientMethods.Services.Interfaces;
+﻿using HttpClientMethods.Interfaces;
+using HttpClientMethods.Models;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 

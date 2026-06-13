@@ -1,4 +1,4 @@
-﻿using HttpClientMethods.Helpers;
+﻿using HttpClientMethods.Interfaces;
 using HttpClientMethods.Models;
 using System.Text.Json;
 

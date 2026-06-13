@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace HttpClientMethods.Dtos
+namespace PluralsightKDStreams.Dtos
 {
     public class PosterDto(string id, string description, byte[] data)
     {

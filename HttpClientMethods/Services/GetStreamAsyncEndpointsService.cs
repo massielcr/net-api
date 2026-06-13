@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using HttpClientMethods.Interfaces;
+using System.Text.Json;
 
 namespace HttpClientMethods.Services
 {

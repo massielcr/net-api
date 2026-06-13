@@ -1,20 +1,9 @@
-﻿using HttpClientMethods.Dtos;
+﻿using PluralsightKDStreams.Dtos;
 
-namespace HttpClientMethods.Services
+namespace PluralsightKDStreams.Interfaces
 {
-    public interface ISendAsyncEndpointsService
+    public interface IStreamerService
     {
-        #region Specific HTTP Methods
-
-        Task<IEnumerable<string>> GetAvatarHeadersAsync(string username);
-
-        Task<IEnumerable<string>> GetUserOptionsAsync(string username);
-
-        #endregion
-
-
-        #region STREAMS
-
         Task<PosterDto> GetPosterServerAsync(string posterId);
         Task<PosterDto?> GetPosterClientAsync(string posterId);
 
@@ -29,16 +18,5 @@ namespace HttpClientMethods.Services
 
         Task<bool> GetServerTrailerAsync(string trailerId, CancellationToken cancellationToken);
         Task<bool> GetClientTrailerAsync(string trailerId, int httptimeout, CancellationToken cancellationToken);
-
-        #endregion
-
-
-        #region OTHERS
-
-        Task<(IEnumerable<string> Repos, double time)> GetRepositoriesAsync(string orgName, int page, int perPage, int totalPages, CancellationToken cancellationToken);
-
-        Task<(IEnumerable<string> Repos, double time)> GetRepositoriesParallelAsync(string orgName, int page, int perPage, int totalPages, CancellationToken cancellationToken);
-
-        #endregion
     }
 }

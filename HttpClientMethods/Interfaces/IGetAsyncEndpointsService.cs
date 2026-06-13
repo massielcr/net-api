@@ -1,6 +1,6 @@
 ﻿using HttpClientMethods.Dtos;
 
-namespace HttpClientMethods.Services
+namespace HttpClientMethods.Interfaces
 {
     public interface IGetAsyncEndpointsService
     {
