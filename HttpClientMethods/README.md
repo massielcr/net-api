@@ -1,4 +1,4 @@
-# net-api - HttpClient Methods Practice Project
+# HttpClientMethods - System.Net.Http Practice Project
 
 ## Overview
 
@@ -26,14 +26,13 @@ The examples in this project are designed to help developers understand and prac
 
 ## Project Structure
 
-- `HttpClientMethods/` - Main Web API project
-  - `Endpoints/` - API endpoint handlers
-  - `Services/` - Business logic and HTTP service implementations
-  - `Http/` - HTTP-related utilities and configurations
-  - `Models/` - Domain models
-  - `Dtos/` - Data transfer objects
-  - `Interfaces/` - Service contracts
-  - `Program.cs` - Application startup and configuration
+- `Endpoints/` - API endpoint handlers
+- `Services/` - Business logic and HTTP service implementations
+- `Http/` - HTTP-related utilities and configurations
+- `Models/` - Domain models
+- `Dtos/` - Data transfer objects
+- `Interfaces/` - Service contracts
+- `Program.cs` - Application startup and configuration
 
 ## References
 
