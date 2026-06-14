@@ -402,7 +402,7 @@ namespace PluralsightKDStreams.Services
             return compressedMemoryStream;
         }
 
-        public async Task<(PosterDto? poster, ProblemDetails? errors)> GetCompressedPosterExceptionDetailsClientAsync(string posterId)
+        public async Task<(PosterDto? poster, ValidationProblemDetails? errors)> GetCompressedPosterExceptionDetailsClientAsync(string posterId)
         {
             HttpClient httpClient = httpClientFactory.CreateClient("Local");
 
@@ -420,17 +420,17 @@ namespace PluralsightKDStreams.Services
             {
                 if (!response.IsSuccessStatusCode)
                 {
-                    ProblemDetails? problemDetails = new();
+                    ValidationProblemDetails? problemDetails = new();
 
                     Stream errorStream = await response.Content.ReadAsStreamAsync();
 
                     switch (response.StatusCode)
                     {
                         case HttpStatusCode.BadRequest:
-                            problemDetails = await JsonSerializer.DeserializeAsync<ProblemDetails>(errorStream, options);
+                            problemDetails = await JsonSerializer.DeserializeAsync<ValidationProblemDetails>(errorStream, options);
                             break;
                         case HttpStatusCode.InternalServerError:
-                            problemDetails = await JsonSerializer.DeserializeAsync<ProblemDetails>(errorStream, options);
+                            problemDetails = await JsonSerializer.DeserializeAsync<ValidationProblemDetails>(errorStream, options);
                             break;
                     }
 
@@ -464,7 +464,7 @@ namespace PluralsightKDStreams.Services
                 logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
             }
 
-            return (null, new ProblemDetails
+            return (null, new ValidationProblemDetails
             {
                 Title = "Error occurred while fetching compressed poster",
                 Detail = $"Failed to retrieve compressed poster with ID {posterId}"

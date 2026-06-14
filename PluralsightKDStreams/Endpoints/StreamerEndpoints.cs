@@ -321,6 +321,7 @@ namespace PluralsightKDStreams.Endpoints
             .Produces(StatusCodes.Status500InternalServerError);
 
 
+
             //EXCEPTION HANDLING SERVER
             app.MapGet("/streamsapi/server/posters/{posterId}/exception", async ([FromRoute] string posterId,
                                                                                   [FromServices] IStreamerService streamerService,
@@ -339,10 +340,11 @@ namespace PluralsightKDStreams.Endpoints
 
                 if (poster == null)
                 {
-                        return Results.Problem(
+                    return Results.ValidationProblem(
                                     detail: $"Failed to retrieve poster ID '{posterId}'.",
                                     statusCode: StatusCodes.Status500InternalServerError,
-                                    title: "Internal Server Error"
+                                    title: "Internal Server Error",
+                                    errors: new Dictionary<string, string[]> { { $"PosterId-{posterId} ", new[] { $"Poster with ID '{posterId}' doesn't have any data." } } }                                 
                                 );
                 }
 
@@ -367,7 +369,7 @@ namespace PluralsightKDStreams.Endpoints
                     return Results.BadRequest("Invalid poster ID");
                 }
 
-                (PosterDto? poster, ProblemDetails? errors) = await streamerService.GetCompressedPosterExceptionDetailsClientAsync(posterId);
+                (PosterDto? poster, ValidationProblemDetails? errors) = await streamerService.GetCompressedPosterExceptionDetailsClientAsync(posterId);
 
                 if (poster == null && errors != null)
                 {
@@ -380,6 +382,13 @@ namespace PluralsightKDStreams.Endpoints
             .Produces(StatusCodes.Status200OK, typeof(PosterDto), "application/json")
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
+
+
+
+            //POLLY SERVER
+
+
+            //POLLY CLIENT
         }
     }
 }
