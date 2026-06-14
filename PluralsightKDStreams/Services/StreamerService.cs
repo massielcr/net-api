@@ -512,7 +512,7 @@ namespace PluralsightKDStreams.Services
         {
             JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
 
-            HttpClient httpClient = httpClientFactory.CreateClient("Local");
+            HttpClient httpClient = httpClientFactory.CreateClient("LocalPolly");
 
             Uri uri = new($"/streamsapi/server/posters/{posterId}/polly", UriKind.Relative);
 

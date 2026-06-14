@@ -3,6 +3,7 @@ using HttpClientMethods.Endpoints;
 using PluralsightKDStreams.Endpoints;
 using PluralsightKDStreams.Interfaces;
 using PluralsightKDStreams.Services;
+using Polly;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,17 @@ builder.Services.AddHttpClient("Local", client =>
 {
     client.BaseAddress = new Uri("http://localhost:5217");
 })
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    AutomaticDecompression = System.Net.DecompressionMethods.GZip
+});
+
+builder.Services.AddHttpClient("LocalPolly", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5217");
+})
+.AddPolicyHandler(Policy.HandleResult<HttpResponseMessage>(response => !response.IsSuccessStatusCode)
+    .RetryAsync(5))
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {
     AutomaticDecompression = System.Net.DecompressionMethods.GZip

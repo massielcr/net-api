@@ -75,7 +75,7 @@ GET {{HostAddress}}/streamsapi/server/posters/4/polly HTTP/2
 Accept: application/json
 
 ### STREAMS - GET - POLLY  RETRY - Valid posterId = 4
-GET {{HostAddress}}/streamsapi/client/posters/4/polly HTTP/2
+GET {{HostAddress}}/streamsapi/client/posters/5/polly HTTP/2
 Accept: application/json
 
 
