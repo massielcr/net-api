@@ -70,12 +70,12 @@ Accept: application/json
 
 
 
-### STREAMS - GET - POLLY  RETRY
-GET {{HostAddress}}/streamsapi/server/posters/test/polly HTTP/2
+### STREAMS - GET - POLLY  RETRY - Valid posterId = 4
+GET {{HostAddress}}/streamsapi/server/posters/4/polly HTTP/2
 Accept: application/json
 
-### STREAMS - GET - POLLY  RETRY
-GET {{HostAddress}}/streamsapi/client/posters/test/polly HTTP/2
+### STREAMS - GET - POLLY  RETRY - Valid posterId = 4
+GET {{HostAddress}}/streamsapi/client/posters/4/polly HTTP/2
 Accept: application/json
 
 

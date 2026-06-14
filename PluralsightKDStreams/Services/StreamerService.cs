@@ -470,5 +470,70 @@ namespace PluralsightKDStreams.Services
                 Detail = $"Failed to retrieve compressed poster with ID {posterId}"
             });
         }
+
+                
+        public async Task<MemoryStream?> GetCompresssedPosterWithPolyServerAsync(int posterId)
+        {
+            if (posterId != 4)
+            {
+                return null;
+            }
+
+            Random random = new Random();
+            byte[] data = new byte[1024 * 1024 * 5]; // 5 MB of random data
+            random.NextBytes(data);
+
+            PosterDto poster = new()
+            {
+                Id = posterId.ToString(),
+                Description = $"Generated poster - {DateTime.UtcNow}",
+                Data = data
+            };
+
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            MemoryStream memoryStream = new();
+            JsonSerializer.Serialize(memoryStream, poster, options);
+            memoryStream.Position = 0;
+
+            MemoryStream compressedMemoryStream = new();
+            await using (GZipStream gzipStream = new GZipStream(compressedMemoryStream, CompressionMode.Compress, true))
+            {
+                await memoryStream.CopyToAsync(gzipStream);
+                await gzipStream.FlushAsync();
+            }
+
+            compressedMemoryStream.Position = 0;
+
+            return compressedMemoryStream;
+        }
+
+        public async Task<PosterDto?> GetCompresssedPosterWithPolyClientAsync(int posterId)
+        {
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            HttpClient httpClient = httpClientFactory.CreateClient("Local");
+
+            Uri uri = new($"/streamsapi/server/posters/{posterId}/polly", UriKind.Relative);
+
+            HttpRequestMessage request = new(HttpMethod.Get, uri);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+
+            HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogError($"Failed to get compressed poster with id {posterId}. Status code: {response.StatusCode}");
+                return null;
+            }
+
+            Stream stream = await response.Content.ReadAsStreamAsync();
+
+            PosterDto? poster = await JsonSerializer.DeserializeAsync<PosterDto>(stream, options);
+
+            return poster;
+
+        }
     }
 }

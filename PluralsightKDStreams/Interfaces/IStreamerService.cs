@@ -23,5 +23,9 @@ namespace PluralsightKDStreams.Interfaces
 
         Task<MemoryStream?> GetCompressedPosterExceptionDetailsServerAsync(string posterId);
         Task<(PosterDto? poster, ValidationProblemDetails? errors)> GetCompressedPosterExceptionDetailsClientAsync(string posterId);
+
+
+        Task<MemoryStream?> GetCompresssedPosterWithPolyServerAsync(int posterId);
+        Task<PosterDto?> GetCompresssedPosterWithPolyClientAsync(int posterId);
     }
 }

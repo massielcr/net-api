@@ -386,9 +386,49 @@ namespace PluralsightKDStreams.Endpoints
 
 
             //POLLY SERVER
+            app.MapGet("/streamsapi/server/posters/{posterId}/polly", async ([FromRoute] int posterId,
+                                                                       [FromServices] IStreamerService streamerService,
+                                                                       HttpContext httpContext) =>
+            {
+                if (posterId <= 0)
+                {
+                    return Results.BadRequest("Invalid poster ID.");
+                }
+
+                MemoryStream? posterStream = await streamerService.GetCompresssedPosterWithPolyServerAsync(posterId);
+
+                if (posterStream == null)
+                {
+                    return Results.Problem($"An error occurred while retrieving the poster {posterId}. Please try again later.");
+                }
+
+                httpContext.Response.Headers.ContentEncoding = "gzip";
+
+                return Results.File(posterStream, "application/json");
+            })
+            .WithName("SendAsync_Server_GetCompressedPosterWithPolly")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status500InternalServerError);
 
 
             //POLLY CLIENT
+            app.MapGet("/streamsapi/client/posters/{posterId}/polly", async ([FromRoute] int posterId,
+                                                                             [FromServices] IStreamerService streamerService) =>
+            {
+                 PosterDto? poster = await streamerService.GetCompresssedPosterWithPolyClientAsync(posterId);
+
+                if (poster == null)
+                {
+                    return Results.Problem($"An error occurred while retrieving the poster {posterId}. Please try again later.");
+                }
+
+                return Results.Ok(poster);
+            })
+            .WithName("SendAsync_Client_GetCompressedPosterWithPolly")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status500InternalServerError);
         }
     }
 }
