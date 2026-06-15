@@ -359,7 +359,6 @@ namespace PluralsightKDStreams.Endpoints
              .Produces(StatusCodes.Status200OK)
              .Produces(StatusCodes.Status400BadRequest);
 
-
             //EXCEPTION HANDLING CLIENT
             app.MapGet("/streamsapi/client/posters/{posterId}/exception", async ([FromRoute] string posterId,
                                                                                  [FromServices] IStreamerService streamerService) =>
@@ -411,12 +410,11 @@ namespace PluralsightKDStreams.Endpoints
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-
             //POLLY CLIENT
             app.MapGet("/streamsapi/client/posters/{posterId}/polly", async ([FromRoute] int posterId,
                                                                              [FromServices] IStreamerService streamerService) =>
             {
-                 PosterDto? poster = await streamerService.GetCompresssedPosterWithPolyClientAsync(posterId);
+                PosterDto? poster = await streamerService.GetCompresssedPosterWithPolyClientAsync(posterId);
 
                 if (poster == null)
                 {
@@ -426,6 +424,53 @@ namespace PluralsightKDStreams.Endpoints
                 return Results.Ok(poster);
             })
             .WithName("SendAsync_Client_GetCompressedPosterWithPolly")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status500InternalServerError);
+
+
+
+            //CUSTOM HANDLER SERVER
+            app.MapGet("/streamsapi/server/posters/{posterId}/customhandler", async ([FromRoute] int posterId,
+                                                                                     [FromServices] IStreamerService streamerService,
+                                                                                     HttpContext httpContext) =>
+            {
+                if (posterId <= 0)
+                {
+                    return Results.BadRequest("Invalid poster ID");
+                }
+
+                MemoryStream? posterStream = await streamerService.GetCompresssedPosterWithCustomHandlerServerAsync(posterId);
+
+                if (posterStream == null)
+                {
+                    return Results.Problem($"An error occurred while retrieving the poster {{posterId}}. Please try again later.");
+                }
+
+                httpContext.Response.Headers.ContentEncoding = "gzip";
+
+                return Results.File(posterStream, "application/json");
+
+            })
+            .WithName("SendAsync_Server_GetCompressedPosterWithCustomHandler")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status500InternalServerError);
+
+            //CUSTOM HANDLER CLIENT
+            app.MapGet("/streamsapi/client/posters/{posterId}/customhandler", async ([FromRoute] int posterId,
+                                                                                     [FromServices] IStreamerService streamerService) => 
+            {
+                PosterDto? posterDto = await streamerService.GetCompresssedPosterWithCustomHandlerClientAsync(posterId);
+
+                if (posterDto == null)
+                {
+                    return Results.Problem($"An error occurred while retrieving the poster {{posterId}}. Please try again later.");
+                }
+
+                return Results.Ok(posterDto);
+            })
+            .WithName("SendAsync_Client_GetCompressedPosterWithCustomHandler")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);

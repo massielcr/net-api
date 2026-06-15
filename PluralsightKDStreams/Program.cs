@@ -1,6 +1,7 @@
 using HttpClientMethods.Dtos;
 using HttpClientMethods.Endpoints;
 using PluralsightKDStreams.Endpoints;
+using PluralsightKDStreams.Handlers;
 using PluralsightKDStreams.Interfaces;
 using PluralsightKDStreams.Services;
 using Polly;
@@ -26,8 +27,17 @@ builder.Services.AddHttpClient("LocalPolly", client =>
 {
     client.BaseAddress = new Uri("http://localhost:5217");
 })
-.AddPolicyHandler(Policy.HandleResult<HttpResponseMessage>(response => !response.IsSuccessStatusCode)
-    .RetryAsync(5))
+.AddPolicyHandler(Policy.HandleResult<HttpResponseMessage>(response => !response.IsSuccessStatusCode).RetryAsync(5))
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    AutomaticDecompression = System.Net.DecompressionMethods.GZip
+});
+
+builder.Services.AddHttpClient("LocalCustom", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5217");
+})
+.AddHttpMessageHandler<RetryPolicyDelegatingHandler>()
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {
     AutomaticDecompression = System.Net.DecompressionMethods.GZip
@@ -35,6 +45,10 @@ builder.Services.AddHttpClient("LocalPolly", client =>
 
 builder.Services.AddHttpClient();
 
+builder.Services.AddTransient(fact =>
+{
+    return new RetryPolicyDelegatingHandler(5);
+});
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {

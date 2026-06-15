@@ -27,5 +27,8 @@ namespace PluralsightKDStreams.Interfaces
 
         Task<MemoryStream?> GetCompresssedPosterWithPolyServerAsync(int posterId);
         Task<PosterDto?> GetCompresssedPosterWithPolyClientAsync(int posterId);
+
+        Task<MemoryStream?> GetCompresssedPosterWithCustomHandlerServerAsync(int posterId);
+        Task<PosterDto?> GetCompresssedPosterWithCustomHandlerClientAsync(int posterId);
     }
 }

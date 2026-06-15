@@ -89,9 +89,9 @@ namespace PluralsightKDStreams.Services
 
         public async Task<string> CreatePosterClientAsync(PosterDto poster)
         {
-            HttpClient httpClient = httpClientFactory.CreateClient("Local");
-
             JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            HttpClient httpClient = httpClientFactory.CreateClient("Local");            
 
             Uri uri = new($"streamsapi/server/posters", UriKind.Relative);
 
@@ -173,9 +173,9 @@ namespace PluralsightKDStreams.Services
 
         public async Task<PosterDto?> GetCompressedPosterClientAsync(string posterId)
         {
-            HttpClient httpClient = httpClientFactory.CreateClient("Local");
-
             JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            HttpClient httpClient = httpClientFactory.CreateClient("Local");            
 
             Uri uri = new($"streamsapi/server/posters/{posterId}/compression", UriKind.Relative);
 
@@ -238,9 +238,9 @@ namespace PluralsightKDStreams.Services
 
         public async Task<string> CreateCompressedPosterClientAsync(PosterDto poster)
         {
-            HttpClient httpClient = httpClientFactory.CreateClient("Local");
-
             JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            HttpClient httpClient = httpClientFactory.CreateClient("Local");            
 
             Uri uri = new($"streamsapi/server/posters/compression", UriKind.Relative);
 
@@ -404,9 +404,9 @@ namespace PluralsightKDStreams.Services
 
         public async Task<(PosterDto? poster, ValidationProblemDetails? errors)> GetCompressedPosterExceptionDetailsClientAsync(string posterId)
         {
-            HttpClient httpClient = httpClientFactory.CreateClient("Local");
-
             JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            HttpClient httpClient = httpClientFactory.CreateClient("Local");            
             
             Uri uri = new($"streamsapi/server/posters/{posterId}/exception", UriKind.Relative);
 
@@ -520,20 +520,134 @@ namespace PluralsightKDStreams.Services
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
-            HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-            
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                logger.LogError($"Failed to get compressed poster with id {posterId}. Status code: {response.StatusCode}");
+                using HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogError($"Failed to get compressed poster with id {posterId}. Status code: {response.StatusCode}");
+                    return null;
+                }
+
+                using Stream stream = await response.Content.ReadAsStreamAsync();
+
+                PosterDto? poster = await JsonSerializer.DeserializeAsync<PosterDto>(stream, options);
+
+                return poster;
+            }
+            catch (InvalidOperationException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch (UriFormatException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+
+            return null;
+        }
+
+
+        public async Task<MemoryStream?> GetCompresssedPosterWithCustomHandlerServerAsync(int posterId)
+        {
+            if (posterId != 4)
+            {
                 return null;
             }
 
-            Stream stream = await response.Content.ReadAsStreamAsync();
+            Random random = new();
+            byte[] data = new byte[1024 * 1024 * 5]; // 5 MB of random data
+            random.NextBytes(data);
 
-            PosterDto? poster = await JsonSerializer.DeserializeAsync<PosterDto>(stream, options);
+            PosterDto poster = new()
+            {
+                Id = posterId.ToString(),
+                Description = $"Generated poster - {DateTime.UtcNow}",
+                Data = data
+            };
 
-            return poster;
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
 
+            MemoryStream memoryStream = new();
+            JsonSerializer.Serialize(memoryStream, poster, options);
+            memoryStream.Position = 0;
+
+            MemoryStream compressedMemoryStream = new();
+
+            await using (GZipStream gzipStream = new(compressedMemoryStream, CompressionMode.Compress, true))
+            {
+                await memoryStream.CopyToAsync(gzipStream);
+                await gzipStream.FlushAsync();
+            }
+
+            compressedMemoryStream.Position = 0;
+
+            return compressedMemoryStream;
+        }
+
+        public async Task<PosterDto?> GetCompresssedPosterWithCustomHandlerClientAsync(int posterId)
+        {
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            HttpClient httpClient = httpClientFactory.CreateClient("LocalCustom");
+
+            Uri uri = new($"/streamsapi/server/posters/{posterId}/customhandler", UriKind.Relative);
+
+            HttpRequestMessage request = new(HttpMethod.Get, uri);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+
+            try
+            {
+                using HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogError($"Failed to get compressed poster with id {posterId}. Status code: {response.StatusCode}");
+                    return null;
+                }
+
+                using Stream responseStream = await response.Content.ReadAsStreamAsync();
+
+                PosterDto? poster = await JsonSerializer.DeserializeAsync<PosterDto>(responseStream, options);
+
+                return poster;
+            }
+            catch (InvalidOperationException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch (UriFormatException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, $"An error occurred while fetching compressed poster with id {posterId}.");
+            }
+
+            return null;
         }
     }
 }

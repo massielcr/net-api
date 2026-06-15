@@ -79,3 +79,11 @@ GET {{HostAddress}}/streamsapi/client/posters/5/polly HTTP/2
 Accept: application/json
 
 
+### STREAMS - GET - CUSTOM HANDLER - Valid posterId = 4
+GET {{HostAddress}}/streamsapi/server/posters/4/customhandler HTTP/2
+Accept: application/json
+
+### STREAMS - GET - CUSTOM HANDLER - Valid posterId = 4
+GET {{HostAddress}}/streamsapi/client/posters/5/customhandler HTTP/2
+Accept: application/json
+
