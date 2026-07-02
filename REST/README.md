@@ -18,34 +18,16 @@ This repository is intended for learning and experimentation. It includes exampl
 
 See each project's README for in-depth details.
 
-## Quick start
+## Project structure
 
-Prerequisites:
-- .NET SDK 8+ (or matching the target framework used in the project)
+The REST folder contains the following projects and example consumers:
 
-Build all projects:
+REST/
+├─ HttpClientMethods/ — ASP.NET Web API project with example endpoints and service-layer HttpClient usage.
+├─ PluralsightKDStreams/ — Examples of streaming and external API integration.
+└─ WebAPIClient/ — Reusable HTTP client helpers and simple consumer examples.
 
-    dotnet build
-
-Run the Web API (HttpClientMethods):
-
-    cd REST\HttpClientMethods
-    dotnet run --urls "http://localhost:5000"
-
-Run the client examples (WebAPIClient):
-
-    cd REST\WebAPIClient
-    dotnet run -- --base-url http://localhost:5000
-
-Basic examples (once API is running):
-
-- List values via curl:
-
-    curl http://localhost:5000/api/values
-
-- Call client example (from WebAPIClient project):
-
-    dotnet run -- --base-url http://localhost:5000
+See each project's README for in-depth details.
 
 ## Technology
 
