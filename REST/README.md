@@ -143,8 +143,3 @@ Contributions and improvements are welcome — open an issue or a pull request.
 ## License
 
 See LICENSE in the repository root (if present).
-
-## References
-
-- https://learn.microsoft.com/en-us/dotnet/api/system.net.http
-- https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient
