@@ -1,4 +1,0 @@
-### GetAsync(String, CancellationToken) - CancellationToken
-
-GET {{HostAddress}}/streamsapi/cancel?cid=1 HTTP/2
-Accept: application/json
