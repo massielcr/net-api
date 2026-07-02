@@ -20,12 +20,47 @@ See each project's README for in-depth details.
 
 ## Project structure
 
-The REST folder contains the following projects and example consumers:
+Repository layout (tree view):
 
 REST/
-├─ HttpClientMethods/ — ASP.NET Web API project with example endpoints and service-layer HttpClient usage.
-├─ PluralsightKDStreams/ — Examples of streaming and external API integration.
-└─ WebAPIClient/ — Reusable HTTP client helpers and simple consumer examples.
+├─ LearnApi.slnx
+├─ HttpClientMethods/
+│  ├─ HttpClientMethods.csproj
+│  ├─ Program.cs
+│  ├─ Properties/
+│  │  └─ launchSettings.json
+│  ├─ Endpoints/
+│  │  ├─ GetAsyncEndpoints.cs
+│  │  ├─ GetStreamAsyncEndpoints.cs
+│  │  └─ (other endpoint files...)
+│  ├─ Services/
+│  │  ├─ GetAsyncEndpointsService.cs
+│  │  ├─ FileService.cs
+│  │  └─ (other service files...)
+│  ├─ Interfaces/
+│  │  └─ (service interfaces...)
+│  └─ Models/
+│     └─ GitHubIssue.cs
+├─ PluralsightKDStreams/
+│  ├─ PluralsightKDStreams.csproj
+│  ├─ Program.cs
+│  ├─ Handlers/
+│  │  └─ RetryPolicyDelegatingHandler.cs
+│  ├─ Services/
+│  │  ├─ StreamerService.cs
+│  │  └─ CancellationService.cs
+│  ├─ Endpoints/
+│  └─ Dtos/
+│     └─ PosterDto.cs
+│  └─ Tests/
+│     ├─ PluralsightKDStreams.Tests.csproj
+│     ├─ StreamerServiceTests.cs
+│     └─ CancellationServiceTests.cs
+└─ WebAPIClient/
+   ├─ WebAPIClient.csproj
+   ├─ Program.cs
+   └─ Dtos/
+      └─ Repository.cs
 
 See each project's README for in-depth details.
 
