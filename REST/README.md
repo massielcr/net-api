@@ -40,6 +40,15 @@ Streaming-focused examples showcasing cancellation and resilience (retry) patter
 | HTTP examples | `PluralsightKDStreams/Http/` | .http examples for streaming scenarios |
 | Tests | `PluralsightKDStreams.Tests/` | Unit tests for streamer and cancellation behavior |
 
+PluralsightKDStreams.Tests — test project details
+
+| Component | Path | Description |
+|---|---|---|
+| Test project | `PluralsightKDStreams.Tests/PluralsightKDStreams.Tests.csproj` | Test project configuration and dependencies |
+| Streamer tests | `PluralsightKDStreams.Tests/StreamerServiceTests.cs` | Unit tests validating streaming behavior and edge cases |
+| Cancellation tests | `PluralsightKDStreams.Tests/CancellationServiceTests.cs` | Tests ensuring cancellation tokens and cancellation handling work as intended |
+| Run tests | `dotnet test PluralsightKDStreams.Tests` | Command to run the test suite locally |
+
 ---
 
 ### WebAPIClient
