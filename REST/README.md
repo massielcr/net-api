@@ -51,3 +51,11 @@ Reusable HTTP client helpers and small example consumers.
 ---
 
 
+## Tech stack
+- .NET SDK 8+ (projects target .NET; verify csproj TargetFramework)
+- ASP.NET Core (minimal APIs and lightweight Web API hosting)
+- System.Net.Http (HttpClient usage and custom delegating handlers)
+- System.Text.Json for JSON serialization/deserialization
+- xUnit / .NET test projects for unit tests (PluralsightKDStreams.Tests)
+
+**Last Updated:** July 02, 2026
