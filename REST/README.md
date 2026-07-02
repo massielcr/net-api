@@ -63,11 +63,6 @@ Reusable HTTP client helpers and small example consumers.
 
 ---
 
-## Notes
-- This README focuses on high-level component mapping for the three projects only.
-- Filenames reflect repository state; minor typos in filenames are preserved.
-- For runnable examples and deeper guidance, see each project's README.
-
 ## Tech stack
 - .NET SDK 8+ (projects target .NET; verify csproj TargetFramework)
 - ASP.NET Core (minimal APIs and lightweight Web API hosting)
