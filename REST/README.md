@@ -18,102 +18,115 @@ This repository is intended for learning and experimentation. It includes exampl
 
 See each project's README for in-depth details.
 
-## Project structure
+## Projects
 
-This README documents the files and components located inside the REST folder only.
+This README focuses on the three projects in the REST solution. Each project has its own section below with a short description and a tree-style listing of its main components.
 
-REST/
-├─ LearnApi.slnx
-├─ HttpClientMethods/
-│  ├─ HttpClientMethods.csproj
-│  ├─ Program.cs
-│  ├─ appsettings.json
-│  ├─ appsettings.Development.json
-│  ├─ Properties/
-│  │  └─ launchSettings.json
-│  ├─ Http/                # HTTP request examples for use in tools like VS Code REST Client
-│  │  ├─ GetAsync.http
-│  │  ├─ GetStreamAsync.http
-│  │  ├─ GetByteArrayAsync.http
-│  │  ├─ GetStringAsync.http
-│  │  ├─ PostAsync.http
-│  │  ├─ PutAsync.http
-│  │  ├─ PatchAsync.http
-│  │  ├─ DeleteAsync.http
-│  │  └─ SendAsync.http
-│  ├─ Endpoints/           # Minimal API endpoint handlers organized by scenario
-│  │  ├─ GetAsyncEndpoints.cs
-│  │  ├─ GetStreamAsyncEndpoints.cs
-│  │  ├─ GetByteArrayAsyncEndpoints.cs
-│  │  ├─ GetStringAsyncEndpoints.cs
-│  │  ├─ PostAsyncEndpoints.cs
-│  │  ├─ PutAsyncEndpoints.cs
-│  │  ├─ PatchAsyncEndpoints.cs
-│  │  ├─ DeleteAsyncEndpoints.cs
-│  │  ├─ SendAsyncEndpoints.cs
-│  │  └─ CancellationEndpoints.cs
-│  ├─ Services/            # Service-layer implementations used by endpoints
-│  │  ├─ GetAsyncEndpointsService.cs
-│  │  ├─ GetStreamAsyncEndpointsService.cs
-│  │  ├─ GetByteArrayAsyncEndpointsService.cs
-│  │  ├─ GetStringAsyncEndpointsService.cs
-│  │  ├─ PostAsyncEndpointsService.cs
-│  │  ├─ PutAsyncEndpointsService.cs
-│  │  ├─ PatchAsyncEndpoinsService.cs   # note: file name includes existing typo
-│  │  ├─ SendAsyncEndpointsService.cs
-│  │  ├─ DeleteAsyncEndpointsService.cs
-│  │  ├─ FileService.cs
-│  │  └─ CancellationService.cs
-│  ├─ Interfaces/          # Service and handler interfaces
-│  │  ├─ IGetAsyncEndpointsService.cs
-│  │  ├─ IGetStreamAsyncEndpointsService.cs
-│  │  ├─ IGetByteArrayAsyncEndpointsService.cs
-│  │  ├─ IGetStringAsyncEndpointsService.cs
-│  │  ├─ IPostAsyncEndpointsService.cs
-│  │  ├─ IPutAsyncEndpointsService.cs
-│  │  ├─ IPatchAsyncEndpoinsService.cs
-│  │  ├─ ISendAsyncEndpointsService.cs
-│  │  ├─ IDeleteAsyncEndpointsService.cs
-│  │  └─ ICancellationService.cs
-│  ├─ Models/
-│  │  ├─ GitHubIssue.cs
-│  │  └─ GitHubAvatar.cs
-│  └─ Dtos/                # DTOs used for requests/responses
-│     ├─ UpdateRepoRequestDto.cs
-│     ├─ UpdateRepoTopicsRequestDto.cs
-│     └─ (many other DTO files)
-├─ PluralsightKDStreams/
-│  ├─ PluralsightKDStreams.csproj
-│  ├─ Program.cs
-│  ├─ appsettings.json
-│  ├─ appsettings.Development.json
-│  ├─ AppJsonSerializerContext.cs
-│  ├─ Handlers/
-│  │  └─ RetryPolicyDelegatingHandler.cs
-│  ├─ Services/
-│  │  ├─ StreamerService.cs
-│  │  └─ CancellationService.cs
-│  ├─ Endpoints/
-│  ├─ Dtos/
-│  │  └─ PosterDto.cs
-│  └─ Http/
-│     └─ Streams.http
-├─ PluralsightKDStreams.Tests/   # unit tests for streaming examples
-│  ├─ PluralsightKDStreams.Tests.csproj
-│  ├─ StreamerServiceTests.cs
-│  └─ CancellationServiceTests.cs
-└─ WebAPIClient/
-   ├─ WebAPIClient.csproj
-   ├─ Program.cs
-   ├─ Dtos/
-   │  └─ Repository.cs
-   └─ README.md
+### HttpClientMethods
+A sample ASP.NET Web API demonstrating HttpClient usage patterns, endpoint handlers, and service-layer abstractions.
+
+HttpClientMethods/
+├─ HttpClientMethods.csproj
+├─ Program.cs
+├─ appsettings.json
+├─ appsettings.Development.json
+├─ Properties/
+│  └─ launchSettings.json
+├─ Http/                # HTTP request examples for VS Code REST Client / tools
+│  ├─ GetAsync.http
+│  ├─ GetStreamAsync.http
+│  ├─ GetByteArrayAsync.http
+│  ├─ GetStringAsync.http
+│  ├─ PostAsync.http
+│  ├─ PutAsync.http
+│  ├─ PatchAsync.http
+│  ├─ DeleteAsync.http
+│  └─ SendAsync.http
+├─ Endpoints/           # Minimal API endpoint handlers
+│  ├─ GetAsyncEndpoints.cs
+│  ├─ GetStreamAsyncEndpoints.cs
+│  ├─ GetByteArrayAsyncEndpoints.cs
+│  ├─ GetStringAsyncEndpoints.cs
+│  ├─ PostAsyncEndpoints.cs
+│  ├─ PutAsyncEndpoints.cs
+│  ├─ PatchAsyncEndpoints.cs
+│  ├─ DeleteAsyncEndpoints.cs
+│  ├─ SendAsyncEndpoints.cs
+│  └─ CancellationEndpoints.cs
+├─ Services/            # Service implementations used by endpoints
+│  ├─ GetAsyncEndpointsService.cs
+│  ├─ GetStreamAsyncEndpointsService.cs
+│  ├─ GetByteArrayAsyncEndpointsService.cs
+│  ├─ GetStringAsyncEndpointsService.cs
+│  ├─ PostAsyncEndpointsService.cs
+│  ├─ PutAsyncEndpointsService.cs
+│  ├─ PatchAsyncEndpoinsService.cs   # note: filename includes existing typo
+│  ├─ SendAsyncEndpointsService.cs
+│  ├─ DeleteAsyncEndpointsService.cs
+│  ├─ FileService.cs
+│  └─ CancellationService.cs
+├─ Interfaces/          # Service and handler contracts
+│  ├─ IGetAsyncEndpointsService.cs
+│  ├─ IGetStreamAsyncEndpointsService.cs
+│  ├─ IGetByteArrayAsyncEndpointsService.cs
+│  ├─ IGetStringAsyncEndpointsService.cs
+│  ├─ IPostAsyncEndpointsService.cs
+│  ├─ IPutAsyncEndpointsService.cs
+│  ├─ IPatchAsyncEndpoinsService.cs
+│  ├─ ISendAsyncEndpointsService.cs
+│  ├─ IDeleteAsyncEndpointsService.cs
+│  └─ ICancellationService.cs
+├─ Models/
+│  ├─ GitHubIssue.cs
+│  └─ GitHubAvatar.cs
+└─ Dtos/                # DTOs used for requests/responses
+   ├─ UpdateRepoRequestDto.cs
+   ├─ UpdateRepoTopicsRequestDto.cs
+   └─ (other DTO files)
+
+---
+
+### PluralsightKDStreams
+Examples of streaming HTTP scenarios, handlers for retry/cancellation, and related test coverage.
+
+PluralsightKDStreams/
+├─ PluralsightKDStreams.csproj
+├─ Program.cs
+├─ appsettings.json
+├─ appsettings.Development.json
+├─ AppJsonSerializerContext.cs
+├─ Handlers/
+│  └─ RetryPolicyDelegatingHandler.cs
+├─ Services/
+│  ├─ StreamerService.cs
+│  └─ CancellationService.cs
+├─ Endpoints/
+├─ Dtos/
+│  └─ PosterDto.cs
+└─ Http/
+   └─ Streams.http
+
+PluralsightKDStreams.Tests/
+├─ PluralsightKDStreams.Tests.csproj
+├─ StreamerServiceTests.cs
+└─ CancellationServiceTests.cs
+
+---
+
+### WebAPIClient
+Reusable HTTP client implementations and simple consumer examples.
+
+WebAPIClient/
+├─ WebAPIClient.csproj
+├─ Program.cs
+└─ Dtos/
+   └─ Repository.cs
+
+---
 
 Notes:
-- This tree focuses only on files and folders under the REST directory.
-- Filenames and the small typo in PatchAsyncEndpoinsService.cs are preserved to reflect the repo state.
-- For detailed usage and examples, consult each project's README under REST/<project>.
-
+- This file concentrates on the three projects above and omits other top-level REST folder details.
+- For full usage, examples, and runnable instructions, see each project's README under its directory.
 
 ## Technology
 ## Technology
