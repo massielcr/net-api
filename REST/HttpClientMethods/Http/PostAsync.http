@@ -1,0 +1,47 @@
+@owner = massielcr
+@repo = my-test-http-repo
+
+
+### PostAsync(String, HttpContent)                                    ----      PostAsync_CreatePersonalRepositoryAsync
+
+POST {{HostAddress}}/postasync/repos  HTTP/2
+Accept: application/json
+Content-Type: application/json
+{
+  "name": "my-test-http-repo",
+  "description": "Created using an .http file!",
+  "private": false,
+  "auto_init": true,
+  "has_downloads": true
+}
+
+### PostAsync(String, HttpContent, CancellationToken)                 ----      PostAsync_CreateRepositoryIssuesAsync
+POST {{HostAddress}}/postasync/repos/{{owner}}/{{repo}}/issues?count=1&cid=1  HTTP/2
+Accept: application/json
+Content-Type: application/json
+{
+  "title": "Found a bug",
+  "body": "I'm having a problem with this."
+}
+
+
+### PostAsync(Uri, HttpContent)                                       ----      PostAsync_CreateRepositoryIssueWithImageAsync
+
+POST {{HostAddress}}/postasync/repos/{{owner}}/{{repo}}/issuewithimage  HTTP/2
+Accept: application/json
+Content-Type: application/json
+{
+  "title": "Found a bug",
+  "image": "issue_image.png"
+}
+
+
+### PostAsync(Uri, HttpContent, CancellationToken)                    ----      PostAsync_CreatePersonalRepositoryIssuesWithImageAsync
+
+POST {{HostAddress}}/postasync/repos/{{owner}}/{{repo}}/issueswithimage?count=1&cid=1  HTTP/2
+Accept: application/json
+Content-Type: application/json
+{
+  "title": "Found a bug",
+  "image": "issue_image.png"
+}
