@@ -1,10 +1,6 @@
-# net-api
+## net-api
 
 A small collection of .NET example projects that illustrate HttpClient patterns, streaming HTTP scenarios, and reusable client code.
-
-## Summary
-
-This README provides a concise top-level summary of the three projects in the REST solution and a clean component table for each.
 
 ---
 
@@ -54,8 +50,4 @@ Reusable HTTP client helpers and small example consumers.
 
 ---
 
-## Notes
-- This README focuses on high-level component mapping for the three projects only.
-- Filenames reflect repository state; minor typos in filenames are preserved.
-- For runnable examples and deeper guidance, see each project's README.
 
