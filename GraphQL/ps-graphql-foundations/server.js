@@ -1,6 +1,9 @@
 import { createServer } from 'node:http'
 import { createYoga, createSchema } from 'graphql-yoga'
+import { createPubSub } from 'graphql-yoga'
 import { pies } from './data.js'
+
+const pubSub = createPubSub();
 
 //Schema
 const typeDefs = `
@@ -34,7 +37,13 @@ const typeDefs = `
     averageRating: Float
     category: String
   }
+
+  type Subscription {
+    pieAdded: Pie!
+  }
 `;
+
+
 
 
 
@@ -55,10 +64,18 @@ const  resolvers = {
         id: pies.length + 1,
         ...input,
       };
+
       pies.push(newPie);
+      pubSub.publish('pieAdded', { pieAdded: newPie }); // Publish the new pie to subscribers
+
       return newPie;
     },
   },
+  Subscription: {
+    pieAdded: {
+      subscribe: () => pubSub.subscribe('pieAdded')
+    }
+  }
 };
 
 
