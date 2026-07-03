@@ -1,5 +1,6 @@
 ﻿using HttpClientMethods.Interfaces;
 using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -198,9 +199,63 @@ namespace HttpClientMethods.Services
             }
         }
 
+        
         //Task<int> - get repo info with cancellation token, timeout, and exception handling
         public async Task<JsonElement> GetRepoInfoAsync(string owner, string repo, CancellationToken cancellationToken)
         {
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
+
+            string safeOwner = Uri.EscapeDataString(owner);
+            string safeRepo = Uri.EscapeDataString(repo);
+
+            Uri uri = new($"repos/{safeOwner}/{safeRepo}", UriKind.Relative);
+
+            try
+            {
+                using HttpRequestMessage request = new(HttpMethod.Get, uri);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
+
+                using HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogError("Failed to get repo info for {owner}/{repo}. Status code: {StatusCode}", owner, repo, response.StatusCode);
+                    return default;
+                }
+
+                using Stream responseStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+                JsonElement? responseObject = await JsonSerializer.DeserializeAsync<JsonElement>(responseStream, options: options, cancellationToken: cancellationToken);
+
+                if (responseObject != null)
+                {
+                    return responseObject.Value;
+                }
+            }
+            catch(InvalidOperationException ex)
+            {
+                logger.LogError(ex, $"The requestUri is not an absolute URI and BaseAddress isn't set.");
+            }
+            catch(UriFormatException ex)
+            {
+                logger.LogError(ex, $"The requestUri is not a valid URI.");
+            }
+            catch(HttpRequestException ex)
+            {
+                logger.LogError(ex, $"An error occurred while sending the request.");
+            }
+            catch(JsonException ex)
+            {
+                logger.LogError(ex, "JSON formatting or parsing failed");
+            }
+            catch(OperationCanceledException ex)
+            {
+                logger.LogError(ex, $"The operation was canceled.");
+                throw;
+            }            
+
             return default;
         }
 

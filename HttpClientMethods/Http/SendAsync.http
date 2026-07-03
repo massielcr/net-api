@@ -1,6 +1,7 @@
 @username = massielcr
-@massiel_owner = massielcr
-@massiel_repo = azure-data
+@owner = massielcr
+@repo_test = my-test-http-repo
+@repo = net-api
 
 ### HttpMethod.Head
 
@@ -17,13 +18,19 @@ Accept: application/json
 
 
 ### Task
-POST {{HostAddress}}/sendasync/{{massiel_owner}}/{{massiel_repo}}/issues?cid=1&to=30 HTTP/2
+
+POST {{HostAddress}}/sendasync/{{owner}}/{{repo_test}}/issues?cid=1&to=30 HTTP/2
 Accept: application/json
 Content-Type: application/json
 {
   "title": "File Todo",
   "body": "Provision File"
 }
+
+### Task<T>
+
+GET {{HostAddress}}/sendasync/{{owner}}/repos/{{repo}}?cid=1&to=30 HTTP/2
+Accept: application/json
 
 
 
