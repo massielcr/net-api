@@ -1,6 +1,7 @@
 ﻿using HttpClientMethods.Interfaces;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 
 namespace HttpClientMethods.Services
@@ -133,7 +134,68 @@ namespace HttpClientMethods.Services
         //Task - create issue with cancellation token, timeout, and exception handling
         public async Task CreateIssueAsync(string owner, string repo, string title, string body, CancellationToken cancellationToken)
         {
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
 
+            HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
+
+            Uri uri = new($"repos/{owner}/{repo}/issues", UriKind.Relative);
+
+            var issue = new
+            {
+                title,
+                body
+            };
+
+            try
+            {
+                JsonContent issueContent = JsonContent.Create(issue, options: options);
+
+                using HttpRequestMessage request = new(HttpMethod.Post, uri);
+                request.Content = issueContent;
+
+                using HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogError("Failed to create issue. Status code: {StatusCode}", response.StatusCode);
+
+                    return;
+                }
+
+                using Stream responseStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+                JsonElement responseElement = await JsonSerializer.DeserializeAsync<JsonElement>(responseStream, cancellationToken: cancellationToken);
+
+                long? issueId = null;
+
+                if (responseElement.TryGetProperty("id", out var id))
+                {
+                    issueId = id.GetInt64();
+                }
+
+                logger.LogInformation($"Issue {issueId} created successfully in {owner}/{repo}");
+            }
+            catch(InvalidOperationException ex)
+            {
+                logger.LogError(ex, $"The requestUri is not an absolute URI and BaseAddress isn't set.");
+            }
+            catch(UriFormatException ex) 
+            { 
+                logger.LogError(ex, $"The requestUri is not a valid URI.");
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, $"An error occurred while sending the request.");
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, "JSON formatting or parsing failed");
+            }
+            catch (OperationCanceledException ex) 
+            { 
+                logger.LogError(ex, $"The operation was canceled.");
+                throw;
+            }
         }
 
         //Task<int> - get repo info with cancellation token, timeout, and exception handling

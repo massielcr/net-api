@@ -2,6 +2,7 @@
 using HttpClientMethods.Interfaces;
 using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace HttpClientMethods.Endpoints
 {
@@ -34,6 +35,50 @@ namespace HttpClientMethods.Endpoints
             .WithName("SendAsync_GetUserOptionsAsync");
 
             #endregion
+
+
+
+            #region BASIC TASKS
+
+            //Task - create issue with cancellation token, timeout, and exception handling
+            app.MapPost("/sendasync/{owner}/{repo}/issues", async ([FromRoute] string owner, [FromRoute] string repo,
+                                                                  [FromQuery(Name = "cid")] string connectionId,
+                                                                  [FromQuery(Name = "to")] int timeout,
+                                                                  [FromBody] IssueCreateRequestDto issueRequest,
+                                                                  [FromServices] ISendAsyncEndpointsService sendEndpointsService,
+                                                                  [FromServices] ICancellationService cancellationService) =>
+            {
+                if (issueRequest == null || string.IsNullOrEmpty(issueRequest.Title) || string.IsNullOrEmpty(issueRequest.Body))
+                {
+                    return Results.BadRequest("Invalid issue request.");
+                }
+
+                CancellationToken token = cancellationService.GetToken(connectionId, timeout);
+
+                try
+                {
+                    await sendEndpointsService.CreateIssueAsync(owner, repo, issueRequest.Title, issueRequest.Body, token);
+                }
+                catch (OperationCanceledException)
+                {
+                    return Results.StatusCode(499);
+                }
+                finally
+                {
+                    cancellationService.Cancel(connectionId);
+                }
+
+                return Results.Ok();
+            })
+             .WithName("SendAsync_CreateIssueAsync_Task")
+             .Produces(StatusCodes.Status200OK)
+             .Produces(StatusCodes.Status400BadRequest)
+             .Produces(StatusCodes.Status499ClientClosedRequest)
+            ;
+
+
+            #endregion
+
 
 
             #region OTHERS
