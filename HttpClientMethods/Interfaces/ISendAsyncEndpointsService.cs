@@ -1,4 +1,6 @@
-﻿namespace HttpClientMethods.Interfaces
+﻿using System.Text.Json;
+
+namespace HttpClientMethods.Interfaces
 {
     public interface ISendAsyncEndpointsService
     {
@@ -9,6 +11,34 @@
         Task<IEnumerable<string>> GetUserOptionsAsync(string username);
 
         #endregion
+
+
+
+        #region BASIC TASKS
+
+
+        //Task - create issue with cancellation token, timeout, and exception handling
+        Task CreateIssueAsync(string owner, string repo, string title, string body, CancellationToken cancellationToken);
+
+
+        //Task<int> - get repo info with cancellation token, timeout, and exception handling
+        Task<JsonElement> GetRepoInfoAsync(string owner, string repo, CancellationToken cancellationToken);
+
+
+        //Task.WhenAny - get the first completed repo info with cancellation token, timeout, and exception handling
+        Task<JsonElement> GetAnyRepoInfoAsync(string owner, CancellationToken cancellationToken);
+
+
+        //Task.WhenAll - get multiple repo info in parallel with cancellation token, timeout, and exception handling
+        Task<IEnumerable<JsonElement>> GetReposInfoAsync(string owner, CancellationToken cancellationToken);       
+
+
+        //Task.WhenEach - get repo info for each repo in a list with cancellation token, timeout, and exception handling
+        IAsyncEnumerable<JsonElement> GetReposInfoEnumerableAsync(string owner, CancellationToken cancellationToken);
+
+
+        #endregion
+
 
 
         #region OTHERS

@@ -1,5 +1,6 @@
 ﻿using HttpClientMethods.Interfaces;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace HttpClientMethods.Services
@@ -126,6 +127,42 @@ namespace HttpClientMethods.Services
         #endregion
 
 
+        #region BASIC TASKS
+
+
+        //Task - create issue with cancellation token, timeout, and exception handling
+        public async Task CreateIssueAsync(string owner, string repo, string title, string body, CancellationToken cancellationToken)
+        {
+
+        }
+
+        //Task<int> - get repo info with cancellation token, timeout, and exception handling
+        public async Task<JsonElement> GetRepoInfoAsync(string owner, string repo, CancellationToken cancellationToken)
+        {
+            return default;
+        }
+
+        //Task.WhenAny - get the first completed repo info with cancellation token, timeout, and exception handling
+        public async Task<JsonElement> GetAnyRepoInfoAsync(string owner, CancellationToken cancellationToken)
+        {
+            return default;
+        }
+
+        //Task.WhenAll - get multiple repo info in parallel with cancellation token, timeout, and exception handling
+        public async Task<IEnumerable<JsonElement>> GetReposInfoAsync(string owner, CancellationToken cancellationToken)
+        {
+            return [];
+        }
+
+        //Task.WhenEach - get repo info for each repo in a list with cancellation token, timeout, and exception handling
+        public async IAsyncEnumerable<JsonElement> GetReposInfoEnumerableAsync(string owner, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            yield return default;
+        }
+
+        #endregion
+
+
         #region OTHERS
 
         public async Task<(IEnumerable<string> Repos, double time)> GetRepositoriesAsync(string orgName, int page, int perPage, int totalPages, CancellationToken cancellationToken)
@@ -243,7 +280,7 @@ namespace HttpClientMethods.Services
             time.Stop();
 
             return (result, time.Elapsed.TotalMilliseconds);
-        }
+        }        
 
         #endregion
     }
