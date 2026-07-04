@@ -75,6 +75,7 @@ namespace HttpClientMethods.Endpoints
              .Produces(StatusCodes.Status400BadRequest)
              .Produces(StatusCodes.Status499ClientClosedRequest);
 
+
             //Task<T> - get repo info with cancellation token, timeout, and exception handling
             app.MapGet("/sendasync/{owner}/repos/{repo}", async ([FromRoute] string owner, [FromRoute] string repo,
                                                                 [FromQuery(Name = "cid")] string connectionId, [FromQuery(Name ="to")] int timeout,
@@ -116,8 +117,9 @@ namespace HttpClientMethods.Endpoints
              .Produces(StatusCodes.Status500InternalServerError)
              .Produces(StatusCodes.Status499ClientClosedRequest);
 
+
             //Task.WhenAny - get the first completed repo info with cancellation token, timeout, and exception handling
-            app.MapPost("/sendasync/repos", async ([FromBody] ReposWhenAnyRequestDto ownersRequest,
+            app.MapPost("/sendasync/anyrepo", async ([FromBody] ReposWhenAnyRequestDto ownersRequest,
                                                    [FromQuery(Name = "cid")] string connectionId, [FromQuery(Name = "to")] int timeout,
                                                    [FromServices] ISendAsyncEndpointsService sendAsyncEndpointsService,
                                                    [FromServices] ICancellationService cancellationService) =>
