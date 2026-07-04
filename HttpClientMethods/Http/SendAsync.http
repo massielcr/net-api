@@ -56,7 +56,10 @@ Content-Type: application/json
    ]
 }
 
+### Task.WhenEach
 
+GET {{HostAddress}}/sendasync/{{owner}}/eachrepos?cid=1&to=30 HTTP/2
+Accept: application/json
 
 
 

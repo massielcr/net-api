@@ -334,9 +334,33 @@ namespace HttpClientMethods.Services
 
 
         //Task.WhenEach - get repo info for each repo in a list with cancellation token, timeout, and exception handling
-        public async IAsyncEnumerable<JsonElement> GetReposInfoEnumerableAsync(string owner, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<string> GetReposInfoEnumerableAsync(string owner, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            yield return default;
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
+
+            Uri uri = new($"/users/{Uri.EscapeDataString(owner)}/repos", UriKind.Relative);
+
+            using HttpRequestMessage request = new(HttpMethod.Get, uri);
+
+            using HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogError("Failed to get repo info for {owner}. Status code: {StatusCode}", owner, response.StatusCode);
+                yield break;
+            }
+
+            Stream responseStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+            await foreach (JsonElement repo in JsonSerializer.DeserializeAsyncEnumerable<JsonElement>(responseStream, options: options, cancellationToken: cancellationToken))
+            {
+                if (repo.TryGetProperty("name", out var repoName) && repoName.GetString() is { } name && !string.IsNullOrWhiteSpace(name))
+                {
+                    yield return name;
+                }
+            }
         }
 
         #endregion

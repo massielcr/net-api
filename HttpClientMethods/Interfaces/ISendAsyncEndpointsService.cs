@@ -31,7 +31,7 @@ namespace HttpClientMethods.Interfaces
 
 
         //Task.WhenEach - get repo info for each repo in a list with cancellation token, timeout, and exception handling
-        IAsyncEnumerable<JsonElement> GetReposInfoEnumerableAsync(string owner, CancellationToken cancellationToken);
+        IAsyncEnumerable<string> GetReposInfoEnumerableAsync(string owner, CancellationToken cancellationToken);
 
 
         #endregion

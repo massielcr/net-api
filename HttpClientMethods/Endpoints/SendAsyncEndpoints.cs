@@ -2,6 +2,7 @@
 using HttpClientMethods.Interfaces;
 using HttpClientMethods.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq.Expressions;
 using System.Text.Json;
 
 namespace HttpClientMethods.Endpoints
@@ -242,6 +243,40 @@ namespace HttpClientMethods.Endpoints
              .Produces(StatusCodes.Status404NotFound)
              .Produces(StatusCodes.Status499ClientClosedRequest);
 
+
+            //Task.WhenEach - get repo info for each repo in a list with cancellation token, timeout, and exception handling
+            app.MapGet("/sendasync/{owner}/eachrepos", async ([FromRoute] string owner,
+                                                              [FromQuery(Name = "cid")] string connectionId, [FromQuery(Name = "to")] int timeout,
+                                                              [FromServices] ISendAsyncEndpointsService sendEndpointsService, 
+                                                              [FromServices] ICancellationService cancellationService) =>
+            {              
+                return StreamReposAsync(owner, connectionId, timeout, sendEndpointsService, cancellationService);
+
+            })
+             .WithName("SendAsync_GetRepoInfoAsync_Task_WhenEach")
+             .Produces(StatusCodes.Status200OK)
+             .Produces(StatusCodes.Status400BadRequest)
+             .Produces(StatusCodes.Status404NotFound)
+             .Produces(StatusCodes.Status499ClientClosedRequest);
+
+
+            static async IAsyncEnumerable<string> StreamReposAsync(string owner, string connectionId, int timeout,
+                                                                   ISendAsyncEndpointsService sendEndpointsService, ICancellationService cancellationService)
+            {
+                CancellationToken token = cancellationService.GetToken(connectionId, timeout);
+
+                try
+                {
+                    await foreach (string result in sendEndpointsService.GetReposInfoEnumerableAsync(owner, token))
+                    {
+                        yield return result;
+                    }
+                }
+                finally
+                {
+                    cancellationService.Cancel(connectionId);
+                }
+            }
 
             #endregion
 
