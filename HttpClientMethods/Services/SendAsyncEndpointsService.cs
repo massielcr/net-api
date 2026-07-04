@@ -199,8 +199,8 @@ namespace HttpClientMethods.Services
             }
         }
 
-        
-        //Task<int> - get repo info with cancellation token, timeout, and exception handling
+
+        //Task<T> - get repo info with cancellation token, timeout, and exception handling
         public async Task<JsonElement> GetRepoInfoAsync(string owner, string repo, CancellationToken cancellationToken)
         {
             JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
@@ -259,16 +259,81 @@ namespace HttpClientMethods.Services
             return default;
         }
 
+
         //Task.WhenAny - get the first completed repo info with cancellation token, timeout, and exception handling
-        public async Task<JsonElement> GetAnyRepoInfoAsync(string owner, CancellationToken cancellationToken)
+        public async Task<(string owner, IEnumerable<string> repos)?> GetAnyReposInfoAsync(string owner, CancellationToken cancellationToken)
         {
+            JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+
+            HttpClient httpClient = httpClientFactory.CreateClient("GitHub");
+
+            Uri uri = new($"/users/{Uri.EscapeDataString(owner)}/repos", UriKind.Relative);
+
+            try
+            {
+                using HttpRequestMessage request = new(HttpMethod.Get, uri);
+
+                using HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogError("Failed to get repo info for {owner}. Status code: {StatusCode}", owner, response.StatusCode);
+                    return default;
+                }
+
+                using Stream responseStream = await response.Content.ReadAsStreamAsync();
+
+                IEnumerable<JsonElement>? responseJson = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(responseStream, cancellationToken: cancellationToken);
+
+                if (responseJson == null)
+                {
+                    logger.LogError("Failed to deserialize repo info for {owner}.", owner);
+                    return default;
+                }
+
+                HashSet<string> repoNames = new();
+                foreach (var item in responseJson)
+                {
+                    if (item.TryGetProperty("name", out var repoName))
+                    {
+                        repoNames.Add(repoName.GetString() ?? string.Empty);
+                    }
+                }
+
+                return (owner, repoNames);
+            }
+            catch (InvalidOperationException ex)
+            {
+                logger.LogError(ex, $"The requestUri is not an absolute URI and BaseAddress isn't set.");
+
+            }
+            catch (UriFormatException ex)
+            {
+                logger.LogError(ex, $"The requestUri is not a valid URI.");
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, $"An error occurred while sending the request.");
+            }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, "JSON formatting or parsing failed");
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogError(ex, $"The operation was canceled.");
+                throw;
+            }
+
             return default;
         }
 
+
         //Task.WhenAll - get multiple repo info in parallel with cancellation token, timeout, and exception handling
-        public async Task<IEnumerable<JsonElement>> GetReposInfoAsync(string owner, CancellationToken cancellationToken)
+        public async Task<(string owner, IEnumerable<string> repos)> GetAllReposInfoAsync(string owner, CancellationToken cancellationToken)
         {
-            return [];
+
+            return default;
         }
 
         //Task.WhenEach - get repo info for each repo in a list with cancellation token, timeout, and exception handling

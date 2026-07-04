@@ -21,16 +21,16 @@ namespace HttpClientMethods.Interfaces
         Task CreateIssueAsync(string owner, string repo, string title, string body, CancellationToken cancellationToken);
 
 
-        //Task<int> - get repo info with cancellation token, timeout, and exception handling
+        //Task<T> - get repo info with cancellation token, timeout, and exception handling
         Task<JsonElement> GetRepoInfoAsync(string owner, string repo, CancellationToken cancellationToken);
 
 
         //Task.WhenAny - get the first completed repo info with cancellation token, timeout, and exception handling
-        Task<JsonElement> GetAnyRepoInfoAsync(string owner, CancellationToken cancellationToken);
+        Task<(string owner, IEnumerable<string> repos)?> GetAnyReposInfoAsync(string owner, CancellationToken cancellationToken);
 
 
         //Task.WhenAll - get multiple repo info in parallel with cancellation token, timeout, and exception handling
-        Task<IEnumerable<JsonElement>> GetReposInfoAsync(string owner, CancellationToken cancellationToken);       
+        Task<(string owner, IEnumerable<string> repos)> GetAllReposInfoAsync(string owner, CancellationToken cancellationToken);       
 
 
         //Task.WhenEach - get repo info for each repo in a list with cancellation token, timeout, and exception handling

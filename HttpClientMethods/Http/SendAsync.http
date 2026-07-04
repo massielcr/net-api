@@ -32,7 +32,17 @@ Content-Type: application/json
 GET {{HostAddress}}/sendasync/{{owner}}/repos/{{repo}}?cid=1&to=30 HTTP/2
 Accept: application/json
 
+### Task<T> Task.WhenAny
 
+POST {{HostAddress}}/sendasync/repos?cid=1&to=30 HTTP/2
+Accept: application/json
+Content-Type: application/json
+{
+   "owners": [
+      "dotnet",
+      "massielcr"
+   ]
+}
 
 
 

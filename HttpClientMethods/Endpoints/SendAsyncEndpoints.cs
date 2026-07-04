@@ -75,7 +75,7 @@ namespace HttpClientMethods.Endpoints
              .Produces(StatusCodes.Status400BadRequest)
              .Produces(StatusCodes.Status499ClientClosedRequest);
 
-
+            //Task<T> - get repo info with cancellation token, timeout, and exception handling
             app.MapGet("/sendasync/{owner}/repos/{repo}", async ([FromRoute] string owner, [FromRoute] string repo,
                                                                 [FromQuery(Name = "cid")] string connectionId, [FromQuery(Name ="to")] int timeout,
                                                                 [FromServices] ISendAsyncEndpointsService sendAsyncEndpointsService,
@@ -116,6 +116,61 @@ namespace HttpClientMethods.Endpoints
              .Produces(StatusCodes.Status500InternalServerError)
              .Produces(StatusCodes.Status499ClientClosedRequest);
 
+            //Task.WhenAny - get the first completed repo info with cancellation token, timeout, and exception handling
+            app.MapPost("/sendasync/repos", async ([FromBody] ReposWhenAnyRequestDto ownersRequest,
+                                                   [FromQuery(Name = "cid")] string connectionId, [FromQuery(Name = "to")] int timeout,
+                                                   [FromServices] ISendAsyncEndpointsService sendAsyncEndpointsService,
+                                                   [FromServices] ICancellationService cancellationService) =>
+            {
+                if (ownersRequest == null || !ownersRequest.Owners.Any())
+                {
+                    return Results.BadRequest("Invalid request.");
+                }
+
+                CancellationToken token = cancellationService.GetToken(connectionId, timeout);
+
+                ICollection<Task<(string owner, IEnumerable<string> repos)?>> tasks = [];
+                foreach (string owner in ownersRequest.Owners)
+                {
+                    Task<(string owner, IEnumerable<string> repos)?> task = sendAsyncEndpointsService.GetAnyReposInfoAsync(owner, token);
+                    tasks.Add(task);
+                }
+
+                try
+                {
+                    while(tasks.Count > 0)
+                    {
+                        Task<(string owner, IEnumerable<string> repos)?> completedTask = await Task.WhenAny(tasks);
+                        
+                        tasks.Remove(completedTask);
+
+                        (string owner, IEnumerable<string> repos)? result = await completedTask;
+
+                        if (result != null)
+                        {
+                            Dictionary<string, IEnumerable<string>> response = [];
+                            response.Add(result.Value.owner, result.Value.repos);
+
+                            return Results.Ok(response);
+                        }
+                    }  
+                    
+                    return Results.Problem("No repositories found.", statusCode: 500);
+                }
+                catch (OperationCanceledException)
+                {
+                    return Results.StatusCode(499);
+                }
+                finally
+                {
+                    cancellationService.Cancel(connectionId);
+                }
+            })
+             .WithName("SendAsync_GetRepoInfoAsync_Task_WhenAny")
+             .Produces(StatusCodes.Status200OK)
+             .Produces(StatusCodes.Status500InternalServerError)
+             .Produces(StatusCodes.Status404NotFound)
+             .Produces(StatusCodes.Status499ClientClosedRequest);
             #endregion
 
 
