@@ -134,7 +134,7 @@ namespace HttpClientMethods.Endpoints
                 ICollection<Task<(string owner, IEnumerable<string> repos)?>> tasks = [];
                 foreach (string owner in ownersRequest.Owners)
                 {
-                    Task<(string owner, IEnumerable<string> repos)?> task = sendAsyncEndpointsService.GetAnyReposInfoAsync(owner, token);
+                    Task<(string owner, IEnumerable<string> repos)?> task = sendAsyncEndpointsService.GetReposInfoAsync(owner, token);
                     tasks.Add(task);
                 }
 

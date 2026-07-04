@@ -262,7 +262,7 @@ namespace HttpClientMethods.Services
 
         //Task.WhenAny - get the first completed repo info with cancellation token, timeout, and exception handling
         //Task.WhenAll - get multiple repo info in parallel with cancellation token, timeout, and exception handling
-        public async Task<(string owner, IEnumerable<string> repos)?> GetAnyReposInfoAsync(string owner, CancellationToken cancellationToken)
+        public async Task<(string owner, IEnumerable<string> repos)?> GetReposInfoAsync(string owner, CancellationToken cancellationToken)
         {
             JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
 
