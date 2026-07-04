@@ -281,9 +281,9 @@ namespace HttpClientMethods.Services
                     return default;
                 }
 
-                using Stream responseStream = await response.Content.ReadAsStreamAsync();
+                using Stream responseStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
-                IEnumerable<JsonElement>? responseJson = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(responseStream, cancellationToken: cancellationToken);
+                IEnumerable<JsonElement>? responseJson = await JsonSerializer.DeserializeAsync<IEnumerable<JsonElement>>(responseStream, options: options, cancellationToken: cancellationToken);
 
                 if (responseJson == null)
                 {
@@ -294,9 +294,9 @@ namespace HttpClientMethods.Services
                 HashSet<string> repoNames = new();
                 foreach (var item in responseJson)
                 {
-                    if (item.TryGetProperty("name", out var repoName))
+                    if (item.TryGetProperty("name", out var repoName) && repoName.GetString() is { } name && !string.IsNullOrWhiteSpace(name))
                     {
-                        repoNames.Add(repoName.GetString() ?? string.Empty);
+                        repoNames.Add(name);
                     }
                 }
 
@@ -304,16 +304,19 @@ namespace HttpClientMethods.Services
             }
             catch (InvalidOperationException ex)
             {
-                logger.LogError(ex, $"The requestUri is not an absolute URI and BaseAddress isn't set.");
-
+                logger.LogError(ex, "The requestUri is not an absolute URI and BaseAddress isn't set.");
             }
             catch (UriFormatException ex)
             {
-                logger.LogError(ex, $"The requestUri is not a valid URI.");
+                logger.LogError(ex, "The requestUri is not a valid URI.");
+            }
+            catch (ArgumentNullException ex)
+            {
+                logger.LogError(ex, "Owner value cannot be null.");
             }
             catch (HttpRequestException ex)
             {
-                logger.LogError(ex, $"An error occurred while sending the request.");
+                logger.LogError(ex, "An error occurred while sending the request.");
             }
             catch (JsonException ex)
             {
@@ -321,7 +324,7 @@ namespace HttpClientMethods.Services
             }
             catch (OperationCanceledException ex)
             {
-                logger.LogError(ex, $"The operation was canceled.");
+                logger.LogError(ex, "The operation was canceled.");
                 throw;
             }
 

@@ -122,9 +122,9 @@ namespace HttpClientMethods.Endpoints
                                                    [FromServices] ISendAsyncEndpointsService sendAsyncEndpointsService,
                                                    [FromServices] ICancellationService cancellationService) =>
             {
-                if (ownersRequest == null || !ownersRequest.Owners.Any())
+                if (ownersRequest == null || !ownersRequest.Owners.Any() || ownersRequest.Owners.Any(string.IsNullOrWhiteSpace))
                 {
-                    return Results.BadRequest("Invalid request.");
+                    return Results.BadRequest("Invalid request. Owners collection cannot be empty or contain null/whitespace values.");
                 }
 
                 CancellationToken token = cancellationService.GetToken(connectionId, timeout);
@@ -138,24 +138,41 @@ namespace HttpClientMethods.Endpoints
 
                 try
                 {
-                    while(tasks.Count > 0)
+                    bool anySucceeded = false;
+                    Dictionary<string, IEnumerable<string>> response = [];
+
+                    while (tasks.Count > 0)
                     {
                         Task<(string owner, IEnumerable<string> repos)?> completedTask = await Task.WhenAny(tasks);
                         
                         tasks.Remove(completedTask);
 
-                        (string owner, IEnumerable<string> repos)? result = await completedTask;
-
-                        if (result != null)
+                        try
                         {
-                            Dictionary<string, IEnumerable<string>> response = [];
-                            response.Add(result.Value.owner, result.Value.repos);
+                            (string owner, IEnumerable<string> repos)? result = await completedTask;
 
-                            return Results.Ok(response);
+                            if (result != null)
+                            {
+                                anySucceeded = true;
+                                
+                                response.Add(result.Value.owner, result.Value.repos);
+
+                                return Results.Ok(response);
+                            }
                         }
-                    }  
+                        catch (Exception)
+                        {
+                            // Task failed, continue to next one
+                            continue;
+                        }
+                    }
                     
-                    return Results.Problem("No repositories found.", statusCode: 500);
+                    if (anySucceeded)
+                    {
+                        return Results.Ok(response);
+                    }
+
+                    return Results.StatusCode(500);
                 }
                 catch (OperationCanceledException)
                 {
