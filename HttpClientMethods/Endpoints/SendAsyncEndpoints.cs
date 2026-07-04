@@ -140,7 +140,6 @@ namespace HttpClientMethods.Endpoints
 
                 try
                 {
-                    bool anySucceeded = false;
                     Dictionary<string, IEnumerable<string>> response = [];
 
                     while (tasks.Count > 0)
@@ -154,12 +153,10 @@ namespace HttpClientMethods.Endpoints
                             (string owner, IEnumerable<string> repos)? result = await completedTask;
 
                             if (result != null)
-                            {
-                                anySucceeded = true;
-                                
+                            {                                                               
                                 response.Add(result.Value.owner, result.Value.repos);
 
-                                return Results.Ok(response);
+                                break;
                             }
                         }
                         catch (Exception)
@@ -169,12 +166,12 @@ namespace HttpClientMethods.Endpoints
                         }
                     }
                     
-                    if (anySucceeded)
+                    if (!response.Any())
                     {
-                        return Results.Ok(response);
+                        return Results.NotFound("No repositories found for any of the provided owners.");
                     }
 
-                    return Results.StatusCode(500);
+                    return Results.Ok(response);                    
                 }
                 catch (OperationCanceledException)
                 {
@@ -187,9 +184,65 @@ namespace HttpClientMethods.Endpoints
             })
              .WithName("SendAsync_GetRepoInfoAsync_Task_WhenAny")
              .Produces(StatusCodes.Status200OK)
-             .Produces(StatusCodes.Status500InternalServerError)
+             .Produces(StatusCodes.Status400BadRequest)
              .Produces(StatusCodes.Status404NotFound)
              .Produces(StatusCodes.Status499ClientClosedRequest);
+
+
+            //Task.WhenAll - get multiple repo info in parallel with cancellation token, timeout, and exception handling
+            app.MapPost("/sendasync/allrepos", async ([FromBody] ReposWhenAllRequestDto ownersRequest, 
+                                                      [FromQuery(Name = "cid")] string connectionId, [FromQuery(Name = "to")] int timeout,
+                                                      [FromServices] ISendAsyncEndpointsService sendEndpointsService, 
+                                                      [FromServices] ICancellationService cancellationService) =>
+            {
+                if (ownersRequest == null || !ownersRequest.Owners.Any() || ownersRequest.Owners.Any(string.IsNullOrWhiteSpace))
+                {
+                    return Results.BadRequest("Invalid owners list");
+                }
+
+                CancellationToken token = cancellationService.GetToken(connectionId, timeout);
+
+                List<Task<(string owner, IEnumerable<string> repos)?>> tasks = ownersRequest.Owners
+                                                                                            .Select(owner => sendEndpointsService.GetReposInfoAsync(owner, token))
+                                                                                            .ToList();
+
+                try
+                {
+                    Dictionary<string, IEnumerable<string>> response = new();
+
+                    (string owner, IEnumerable<string> repos)?[] results = await Task.WhenAll(tasks);
+
+                    foreach ((string owner, IEnumerable<string> repos)? result in results)
+                    {
+                        if (result != null)
+                        {
+                            response.TryAdd(result.Value.owner, result.Value.repos);
+                        }
+                    }
+
+                    if (!response.Any())
+                    {
+                        return Results.NotFound("No repositories found for any of the provided owners.");
+                    }
+
+                    return Results.Ok(response);
+                }
+                catch (OperationCanceledException)
+                {
+                    return Results.StatusCode(499);
+                }
+                finally
+                {
+                    cancellationService.Cancel(connectionId);
+                }                
+            })
+             .WithName("SendAsync_GetRepoInfoAsync_Task_WhenAll")
+             .Produces(StatusCodes.Status200OK)
+             .Produces(StatusCodes.Status400BadRequest)
+             .Produces(StatusCodes.Status404NotFound)
+             .Produces(StatusCodes.Status499ClientClosedRequest);
+
+
             #endregion
 
 
